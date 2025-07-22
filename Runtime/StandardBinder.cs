@@ -5,28 +5,47 @@ using MvvmToolkit.Proxy;
 
 namespace MvvmToolkit
 {
-    public class StandardBinder<S, SProperty ,TProperty> : Binder<S, SProperty ,TProperty>
+    /// <summary>
+    /// 标准的绑定器  
+    /// </summary>
+    /// <typeparam name="S"></typeparam>
+    /// <typeparam name="SProperty"></typeparam>
+    /// <typeparam name="TProperty"></typeparam>
+    public class StandardBinder<S, SProperty, TProperty> : Binder<S, SProperty, TProperty>
     {
-        private Action<SProperty> _handler;
+        private Action<TProperty> _handler;
 
-        private Action<S, SProperty> _multiHandler;
+        private Action<S, TProperty> _multiHandler;
 
-        private ActionWrapper<S, SProperty> _actionWrapper;
+        private ActionWrapper<S, TProperty> _actionWrapper;
 
         public bool isBinding = false;
 
-        public StandardBinder(ActionWrapper<S, SProperty> actionWrapper, Action<SProperty> handler)
+        public StandardBinder(ActionWrapper<S, TProperty> actionWrapper, Action<TProperty> handler)
         {
             _handler = handler;
             _actionWrapper = actionWrapper;
         }
 
-        public StandardBinder(ActionWrapper<S, SProperty> actionWrapper, Action<S, SProperty> multiHandler)
+
+        public StandardBinder(Action<TProperty> handler)
         {
-            _multiHandler = multiHandler;
-            _actionWrapper = actionWrapper;
+            _handler = handler;
         }
 
+        public StandardBinder(Action<S, TProperty> multiHandler)
+        {
+            _multiHandler = multiHandler;
+        }
+
+
+        /// <summary>
+        /// 传入 转化器  则使用转换器 将 SProperty 转化为 TProperty 再传入 处理器
+        /// 否则 直接强转 传入 处理器
+        /// 转换器分为两段
+        /// obj 到 source
+        /// 和 source 到 target
+        /// </summary>
         public override void OneWay()
         {
             if (!isBinding)

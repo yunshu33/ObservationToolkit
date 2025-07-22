@@ -15,16 +15,16 @@ namespace MvvmToolkit.Proxy
         }
 
 
-        public Binder<S, SProperty, TProperty> To<TProperty>(Action<SProperty> handler)
+        public Binder<S, SProperty, TProperty> To<TProperty>(Action<TProperty> handler)
         {
             if (handler == null) throw new ArgumentNullException(nameof(handler));
-            return new StandardBinder<S, SProperty, TProperty>(_actionWrapper, handler);
+            return new StandardBinder<S, SProperty, TProperty>( handler);
         }
 
-        public Binder<S, SProperty, TProperty> To<TProperty>(Action<S, SProperty> multiHandler)
+        public Binder<S, SProperty, TProperty> To<TProperty>(Action<S, TProperty> multiHandler)
         {
             if (multiHandler == null) throw new ArgumentNullException(nameof(multiHandler));
-            return new StandardBinder<S, SProperty, TProperty>(_actionWrapper, multiHandler);
+            return new StandardBinder<S, SProperty, TProperty>( multiHandler);
         }
     }
 }

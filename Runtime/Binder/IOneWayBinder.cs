@@ -2,7 +2,7 @@
 
 namespace MvvmToolkit
 {
-    public interface IOneWayBinder<S, out SProperty, in TProperty> 
+    public interface IOneWayBinder<S, SProperty, in TProperty> 
     {
         void OneWay();
         

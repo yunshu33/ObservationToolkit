@@ -23,11 +23,11 @@ namespace LJVoyage.Game.Runtime.Mvvm
         /// </summary>
         /// <param name="binding"></param>
         /// <param name="propertyExpression"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TProperty"></typeparam>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="SProperty"></typeparam>
         /// <returns></returns>
-        public static BindingSource<T, TProperty> For<T, TProperty>(this T binding,
-            Expression<Func<T, TProperty>> propertyExpression) where T : class, IBindingHolder
+        public static BindingSource<S, SProperty> For<S, SProperty>(this S binding,
+            Expression<Func<S, SProperty>> propertyExpression) where S : class, IBindingHolder
         {
             return Binding(binding).ObserveValue(propertyExpression);
         }
@@ -39,12 +39,12 @@ namespace LJVoyage.Game.Runtime.Mvvm
         /// <param name="field"></param>
         /// <param name="value"></param>
         /// <param name="propertyName"></param>
-        /// <typeparam name="V"></typeparam>
+        /// <typeparam name="SProperty"></typeparam>
         /// <returns></returns>
-        public static bool SetField<V>(this IBindingHolder binding, ref V field, V value,
+        public static bool SetField<SProperty>(this IBindingHolder binding, ref SProperty field, SProperty value,
             [CallerMemberName] string propertyName = null)
         {
-            if (EqualityComparer<V>.Default.Equals(field, value)) return false;
+            if (EqualityComparer<SProperty>.Default.Equals(field, value)) return false;
             field = value;
             binding.OnPropertyChanged(value, propertyName);
             return true;

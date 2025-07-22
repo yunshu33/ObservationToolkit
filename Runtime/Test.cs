@@ -25,7 +25,7 @@ namespace LJVoyage.Game.Runtime.Mvvm
 
             //  way 可传入  转换代理 
 
-            model.For(m => m.Value).To(TestEvent).OneWay();
+            model.For(m => m.Value).To<int>(TestEvent).OneWay();
 
             model.For(m => m.Value).To(text).OneWay();
 
@@ -51,7 +51,7 @@ namespace LJVoyage.Game.Runtime.Mvvm
         [ContextMenu("RemoveListener")]
         private void RemoveListener()
         {
-            model.For(m => m.Value).To(TestEvent).Unbind();
+       
             model.For(m => m.Value).To(text).Unbind();
         }
 
