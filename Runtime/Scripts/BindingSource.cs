@@ -16,24 +16,25 @@ namespace LJVoyage.ObservationToolkit.Runtime
         public Binder<S, SProperty, TProperty> To<TProperty>(Action<TProperty> handler)
         {
             if (handler == null) throw new ArgumentNullException(nameof(handler));
-            return new StandardBinder<S, SProperty, TProperty>( handler);
+            return new StandardBinder<S, SProperty, TProperty>(handler);
         }
 
         public Binder<S, SProperty, TProperty> To<TProperty>(Action<S, TProperty> multiHandler)
         {
             if (multiHandler == null) throw new ArgumentNullException(nameof(multiHandler));
-            return new StandardBinder<S, SProperty, TProperty>( multiHandler);
+            return new StandardBinder<S, SProperty, TProperty>(multiHandler);
         }
-        
+
         public Binder<S, SProperty, SProperty> To(Action<SProperty> handler)
         {
             if (handler == null) throw new ArgumentNullException(nameof(handler));
-            return new StandardBinder<S, SProperty, SProperty>( handler);
+            return new StandardBinder<S, SProperty, SProperty>(handler);
         }
+
         public Binder<S, SProperty, SProperty> To(Action<S, SProperty> multiHandler)
         {
             if (multiHandler == null) throw new ArgumentNullException(nameof(multiHandler));
-            return new StandardBinder<S, SProperty, SProperty>( multiHandler);
+            return new StandardBinder<S, SProperty, SProperty>(multiHandler);
         }
     }
 }

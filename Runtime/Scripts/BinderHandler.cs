@@ -12,6 +12,9 @@ namespace LJVoyage.ObservationToolkit.Runtime
     /// </summary>
     public class BindingHandler
     {
+        
+        
+        
         protected readonly Dictionary<string, Binding> _binders = new();
 
         private readonly WeakReference<object> _source;

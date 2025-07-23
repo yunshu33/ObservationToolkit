@@ -2,7 +2,12 @@
 
 namespace LJVoyage.ObservationToolkit.Runtime
 {
-    public class Binding<T, TProperty> : Binding 
+    /// <summary>
+    /// 使用函数 的has code 作为 唯一标识  绑定  解除绑定
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TProperty"></typeparam>
+    public class Binding<T, TProperty> : Binding
     {
         private string _propertyName;
 
@@ -11,7 +16,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
         private ActionWrapper<T, TProperty> _actionWrapper = new();
 
         public ActionWrapper<T, TProperty> ActionWrapper => _actionWrapper;
-        
+
         public Binding(string propertyName, WeakReference<object> source)
         {
             _propertyName = propertyName;
