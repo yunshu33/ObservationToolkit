@@ -1,0 +1,16 @@
+{
+    "name": "LJVoyage.ObservationToolkit.Sample",
+    "rootNamespace": "",
+    "references": [
+        "GUID:40311e219f18080498d40f81bef463e0"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
