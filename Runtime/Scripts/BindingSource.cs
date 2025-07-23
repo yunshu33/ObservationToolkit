@@ -13,7 +13,6 @@ namespace LJVoyage.ObservationToolkit.Runtime
             _actionWrapper = actionWrapper;
         }
 
-
         public Binder<S, SProperty, TProperty> To<TProperty>(Action<TProperty> handler)
         {
             if (handler == null) throw new ArgumentNullException(nameof(handler));
@@ -24,6 +23,17 @@ namespace LJVoyage.ObservationToolkit.Runtime
         {
             if (multiHandler == null) throw new ArgumentNullException(nameof(multiHandler));
             return new StandardBinder<S, SProperty, TProperty>( multiHandler);
+        }
+        
+        public Binder<S, SProperty, SProperty> To(Action<SProperty> handler)
+        {
+            if (handler == null) throw new ArgumentNullException(nameof(handler));
+            return new StandardBinder<S, SProperty, SProperty>( handler);
+        }
+        public Binder<S, SProperty, SProperty> To(Action<S, SProperty> multiHandler)
+        {
+            if (multiHandler == null) throw new ArgumentNullException(nameof(multiHandler));
+            return new StandardBinder<S, SProperty, SProperty>( multiHandler);
         }
     }
 }

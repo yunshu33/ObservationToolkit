@@ -19,13 +19,15 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         public bool isBinding = false;
 
+        
+        private IConvert<SProperty, TProperty> _convert;
+        
         public StandardBinder(ActionWrapper<S, TProperty> actionWrapper, Action<TProperty> handler)
         {
             _handler = handler;
             _actionWrapper = actionWrapper;
         }
-
-
+        
         public StandardBinder(Action<TProperty> handler)
         {
             _handler = handler;
@@ -61,7 +63,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         public override void OneWay(IConvert<SProperty, TProperty> convert)
         {
-            throw new NotImplementedException();
+            
         }
 
         public override void Unbind()

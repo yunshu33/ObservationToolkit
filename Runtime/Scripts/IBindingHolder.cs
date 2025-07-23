@@ -13,5 +13,6 @@ namespace LJVoyage.ObservationToolkit.Runtime
         {
             BindingHandler?.OnPropertyChanged(value, propertyName);
         }
+        
     }
 }

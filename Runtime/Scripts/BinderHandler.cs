@@ -21,8 +21,8 @@ namespace LJVoyage.ObservationToolkit.Runtime
             _source = new WeakReference<object>(source);
         }
 
-        public BindingSource<T, TProperty> ObserveValue<T, TProperty>(
-            Expression<Func<T, TProperty>> propertyExpression) where T : class
+        public BindingSource<S, SProperty> ObserveValue<S, SProperty>(
+            Expression<Func<S, SProperty>> propertyExpression) where S : class
         {
             if (propertyExpression.Body is not MemberExpression memberExpression ||
                 memberExpression.Member.MemberType != System.Reflection.MemberTypes.Property)
@@ -33,13 +33,13 @@ namespace LJVoyage.ObservationToolkit.Runtime
             var propertyName = memberExpression.Member.Name;
 
             if (_binders.TryGetValue(propertyName, out var binder))
-                return new BindingSource<T, TProperty>(((Binding<T, TProperty>)binder).ActionWrapper);
+                return new BindingSource<S, SProperty>(((Binding<S, SProperty>)binder).ActionWrapper);
 
-            binder = new Binding<T, TProperty>(propertyName, _source);
+            binder = new Binding<S, SProperty>(propertyName, _source);
 
             _binders[propertyName] = binder;
 
-            return new BindingSource<T, TProperty>(((Binding<T, TProperty>)binder).ActionWrapper);
+            return new BindingSource<S, SProperty>(((Binding<S, SProperty>)binder).ActionWrapper);
         }
 
         public virtual void OnPropertyChanged<V>(V value, [CallerMemberName] string propertyName = null)

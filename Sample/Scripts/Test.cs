@@ -25,13 +25,11 @@ namespace LJVoyage.ObservationToolkit.Sample
 
             //  way 可传入  转换代理 
 
-            model.For(m => m.Value).To<int>(TestEvent).OneWay();
+            model.For(m => m.Value).To(TestEvent).OneWay();
 
             model.For(m => m.Value).To(text).OneWay();
 
             model.For(m => m.Value).To(inputField).OneWay();
-
-            //model.For(m=>m.Value).Bind();
 
             button.onClick.AddListener(Add);
         }
@@ -46,12 +44,12 @@ namespace LJVoyage.ObservationToolkit.Sample
         [ContextMenu("AddListener")]
         private void AddListener()
         {
+            
         }
 
         [ContextMenu("RemoveListener")]
         private void RemoveListener()
         {
-       
             model.For(m => m.Value).To(text).Unbind();
         }
 
@@ -68,8 +66,6 @@ namespace LJVoyage.ObservationToolkit.Sample
         }
     }
 
-    
-    
 
     [Serializable]
     public class TestModel : ITTT
@@ -93,7 +89,7 @@ namespace LJVoyage.ObservationToolkit.Sample
             set { this.SetField(ref _ttt, value); }
         }
     }
-    
+
 
     public interface ITTT : IBindingHolder
     {
