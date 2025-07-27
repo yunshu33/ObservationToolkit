@@ -15,19 +15,20 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         private Action<S, TProperty> _multiHandler;
 
-        private ActionWrapper<S, TProperty> _actionWrapper;
+        private Binding<S, SProperty> _binding;
 
         public bool isBinding = false;
 
-        
         private IConvert<SProperty, TProperty> _convert;
-        
-        public StandardBinder(ActionWrapper<S, TProperty> actionWrapper, Action<TProperty> handler)
+
+        private string _hashCode;
+
+        public StandardBinder(Action<TProperty> handler, Binding<S, SProperty> binding)
         {
             _handler = handler;
-            _actionWrapper = actionWrapper;
+            _binding = binding;
         }
-        
+
         public StandardBinder(Action<TProperty> handler)
         {
             _handler = handler;
@@ -48,34 +49,52 @@ namespace LJVoyage.ObservationToolkit.Runtime
         /// </summary>
         public override void OneWay()
         {
-            if (!isBinding)
-            {
-                if (_handler != null)
-                {
-                    _actionWrapper.Bind(_handler);
-                }
-                else
-                {
-                    _actionWrapper.Bind(_multiHandler);
-                }
-            }
+            _binding.Bind(this);
+
+            isBinding = true;
         }
 
         public override void OneWay(IConvert<SProperty, TProperty> convert)
         {
-            
+            _convert = convert;
+            OneWay();
         }
+
+        protected override SProperty Convert(object value)
+        {
+            return _convert.Convert(value);
+        }
+
+        public override void Invoke(S source, object arg1, SProperty arg2)
+        {
+            SProperty sProperty = arg2;
+
+            TProperty tProperty;
+
+            if (_convert != null)
+            {
+                sProperty = _convert.Convert(arg1);
+
+                tProperty = _convert.Convert(sProperty);
+            }
+            else
+            {
+                tProperty = sProperty is TProperty compatible ? compatible : default;
+            }
+
+            _handler?.Invoke(tProperty);
+            _multiHandler?.Invoke(default, tProperty);
+        }
+
 
         public override void Unbind()
         {
-            if (_handler != null)
-            {
-                _actionWrapper.Unbind(_handler);
-            }
-            else if (_multiHandler != null)
-            {
-                _actionWrapper.Unbind(_multiHandler);
-            }
+            _binding.Unbind(this);
+        }
+
+        public override string HashCode
+        {
+            get => _handler != null ? _handler.GetHashCode().ToString() : _multiHandler.GetHashCode().ToString();
         }
     }
 }

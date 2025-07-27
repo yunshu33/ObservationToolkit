@@ -13,8 +13,6 @@ namespace LJVoyage.ObservationToolkit.Runtime
     public class BindingHandler
     {
         
-        
-        
         protected readonly Dictionary<string, Binding> _binders = new();
 
         private readonly WeakReference<object> _source;
@@ -36,13 +34,13 @@ namespace LJVoyage.ObservationToolkit.Runtime
             var propertyName = memberExpression.Member.Name;
 
             if (_binders.TryGetValue(propertyName, out var binder))
-                return new BindingSource<S, SProperty>(((Binding<S, SProperty>)binder).ActionWrapper);
+                return new BindingSource<S, SProperty>(((Binding<S, SProperty>)binder));
 
             binder = new Binding<S, SProperty>(propertyName, _source);
 
             _binders[propertyName] = binder;
 
-            return new BindingSource<S, SProperty>(((Binding<S, SProperty>)binder).ActionWrapper);
+            return new BindingSource<S, SProperty>((Binding<S, SProperty>)binder);
         }
 
         public virtual void OnPropertyChanged<V>(V value, [CallerMemberName] string propertyName = null)

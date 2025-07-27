@@ -25,39 +25,31 @@ namespace LJVoyage.ObservationToolkit.Sample
 
             //  way 可传入  转换代理 
             //
-            // model.For(m => m.Value).To(TestEvent).OneWay();
-            //
+            model.For(m => m.Value).To(TestEvent).OneWay();
+
             // model.For(m => m.Value).To(text).OneWay();
             //
             // model.For(m => m.Value).To(inputField).OneWay();
+
+
             //
             // button.onClick.AddListener(Add);
-
-
-            T(T);
-            T(T);
-            T(TestEvent);
-
         }
 
 
         private void T(int t)
         {
-            
         }
 
         private void T(string t)
         {
-            
         }
-        
+
         private void T(Action<int> action)
         {
-           
-           
             UnityEngine.Debug.Log(action.Method.Name + action.GetHashCode());
         }
-        
+
 
         private void TestEvent(int value)
         {
@@ -68,13 +60,11 @@ namespace LJVoyage.ObservationToolkit.Sample
         [ContextMenu("AddListener")]
         private void AddListener()
         {
-            
         }
 
         [ContextMenu("RemoveListener")]
         private void RemoveListener()
         {
-            model.For(m => m.Value).To(text).Unbind();
         }
 
         [ContextMenu("Add")]

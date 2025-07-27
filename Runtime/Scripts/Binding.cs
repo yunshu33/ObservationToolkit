@@ -1,53 +1,65 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace LJVoyage.ObservationToolkit.Runtime
 {
     /// <summary>
     /// 使用函数 的has code 作为 唯一标识  绑定  解除绑定
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="TProperty"></typeparam>
-    public class Binding<T, TProperty> : Binding
+    /// <typeparam name="S"></typeparam>
+    /// <typeparam name="SProperty"></typeparam>
+    public class Binding<S, SProperty> : Binding
     {
         private string _propertyName;
 
         private readonly WeakReference<object> _source;
 
-        private ActionWrapper<T, TProperty> _actionWrapper = new();
-
-        public ActionWrapper<T, TProperty> ActionWrapper => _actionWrapper;
+        private Dictionary<string, Binder<S, SProperty>> _binders;
 
         public Binding(string propertyName, WeakReference<object> source)
         {
             _propertyName = propertyName;
             _source = source;
+
+            _binders = new Dictionary<string, Binder<S, SProperty>>();
         }
 
-        public void Bind(Action<TProperty> handler)
+
+        public void Bind(Binder<S, SProperty> binder)
         {
-            if (handler == null) throw new ArgumentNullException(nameof(handler));
-            _actionWrapper.Bind(handler);
+            _binders.Add(binder.HashCode, binder);
         }
 
-        public void To(Action<TProperty> handler) => Bind(handler);
-
-        public void From(Action<TProperty> handler) => Unbind(handler);
-
-        public void Unbind(Action<TProperty> handler)
+        public void Unbind(Binder<S, SProperty> binder)
         {
-            if (handler == null) throw new ArgumentNullException(nameof(handler));
-            _actionWrapper.Unbind(handler);
+            if (!_binders.ContainsKey(binder.HashCode))
+            {
+                _binders.Remove(binder.HashCode);
+            }
+            else
+            {
+                throw new Exception("未找到绑定");
+            }
         }
-
 
         public override void Invoke(object value)
         {
-            if (_source.TryGetTarget(out var source))
+            if (!_source.TryGetTarget(out var obj))
             {
-                _actionWrapper.Invoke(source, value);
+                throw new Exception("源对象已被释放");
+            }
+
+            var source = (S)obj;
+
+            var property = (SProperty)value;
+
+            foreach (var binder in _binders.Values)
+            {
+                binder.Invoke(source, value, property);
             }
         }
     }
+
 
     public abstract class Binding
     {

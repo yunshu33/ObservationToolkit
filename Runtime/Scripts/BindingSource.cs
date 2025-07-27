@@ -4,19 +4,18 @@ namespace LJVoyage.ObservationToolkit.Runtime
 {
     public class BindingSource<S, SProperty>
     {
-        private readonly ActionWrapper<S, SProperty> _actionWrapper;
+        
+        private Binding<S, SProperty> _binding;
 
-        public ActionWrapper<S, SProperty> ActionWrapper => _actionWrapper;
-
-        public BindingSource(ActionWrapper<S, SProperty> actionWrapper)
+        public BindingSource(Binding<S, SProperty> binding)
         {
-            _actionWrapper = actionWrapper;
+            _binding =  binding;
         }
 
         public Binder<S, SProperty, TProperty> To<TProperty>(Action<TProperty> handler)
         {
             if (handler == null) throw new ArgumentNullException(nameof(handler));
-            return new StandardBinder<S, SProperty, TProperty>(handler);
+            return new StandardBinder<S, SProperty, TProperty>(handler, _binding);
         }
 
         public Binder<S, SProperty, TProperty> To<TProperty>(Action<S, TProperty> multiHandler)
