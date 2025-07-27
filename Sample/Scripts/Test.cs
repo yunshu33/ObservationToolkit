@@ -49,7 +49,7 @@ namespace LJVoyage.ObservationToolkit.Sample
         {
             UnityEngine.Debug.Log(action.Method.Name + action.GetHashCode());
         }
-
+        
 
         private void TestEvent(int value)
         {
