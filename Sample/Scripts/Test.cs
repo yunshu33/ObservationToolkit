@@ -24,16 +24,18 @@ namespace LJVoyage.ObservationToolkit.Sample
             //OneWay 和Two way 要拆分为接口  部分 gui 不支持双向  比如 Text 
 
             //  way 可传入  转换代理 
-            //
-            model.For(m => m.Value).To(TestEvent).OneWay();
 
+            model.For(m => m.Value).To(TestEvent).OneWay();
+            
             // model.For(m => m.Value).To(text).OneWay();
             //
             // model.For(m => m.Value).To(inputField).OneWay();
 
-
-            //
-            // button.onClick.AddListener(Add);
+            button.onClick.AddListener(Add);
+            
+            T(T);
+            T(T);
+            T(TestEvent);
         }
 
 
@@ -49,7 +51,7 @@ namespace LJVoyage.ObservationToolkit.Sample
         {
             UnityEngine.Debug.Log(action.Method.Name + action.GetHashCode());
         }
-        
+
 
         private void TestEvent(int value)
         {
