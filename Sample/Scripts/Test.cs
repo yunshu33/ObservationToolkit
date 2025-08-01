@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using LJVoyage.ObservationToolkit.Runtime;
 using LJVoyage.ObservationToolkit.Runtime.Converter;
+using LJVoyage.ObservationToolkit.Runtime.UGUI;
 
 namespace LJVoyage.ObservationToolkit.Sample
 {
@@ -26,22 +27,17 @@ namespace LJVoyage.ObservationToolkit.Sample
             //  way 可传入  转换代理 
 
             model.For(m => m.Value).To(TestEvent).OneWay();
-            
-          
-            
-            // model.For(m => m.Value).To(text).OneWay();
+
+
             //
             // model.For(m => m.Value).To(inputField).OneWay();
 
             button.onClick.AddListener(Add);
-            
-           
         }
 
 
         private void TestEvent2(TestModel model, int value)
         {
-            
             Debug.Log(value);
         }
 
@@ -55,13 +51,13 @@ namespace LJVoyage.ObservationToolkit.Sample
         [ContextMenu("AddListener")]
         private void AddListener()
         {
-            model.For(m=> m.Value, new Convert1()).To(TestEvent2).OneWay();
+            model.For(m => m.Value, new Convert1()).To(TestEvent2).OneWay();
         }
 
         [ContextMenu("RemoveListener")]
         private void RemoveListener()
         {
-            model.For(m=> m.Value).To(TestEvent2).Unbind();
+            model.For(m => m.Value).To(TestEvent2).Unbind();
         }
 
         [ContextMenu("Add")]
@@ -99,6 +95,20 @@ namespace LJVoyage.ObservationToolkit.Sample
             get => _ttt;
             set { this.SetField(ref _ttt, value); }
         }
+    }
+
+    [Serializable]
+    public class TestModel2 : IBindingHolder
+    {
+        BindingHandler IBindingHolder.BindingHandler { get; set; }
+
+        public float Value
+        {
+            get => _value;
+            set { this.SetField(ref _value, value); }
+        }
+
+        [SerializeField] private float _value;
     }
 
 

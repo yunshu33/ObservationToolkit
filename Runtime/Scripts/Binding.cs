@@ -20,7 +20,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
             get => _converter;
             set => _converter = value;
         }
-        
+
         private readonly WeakReference<object> _source;
 
         private readonly Dictionary<string, Binder<S, SProperty>> _binders;
@@ -40,7 +40,14 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         public void Unbind(Binder<S, SProperty> binder)
         {
-            if (!_binders.Remove(binder.HashCode))
+            var hashcode = binder.HashCode;
+
+            if (_binders.TryGetValue(binder.HashCode, out Binder<S, SProperty> binder2))
+            {
+                binder2.Unbind();
+                _binders.Remove(hashcode);
+            }
+            else
             {
                 throw new Exception("未找到绑定");
             }

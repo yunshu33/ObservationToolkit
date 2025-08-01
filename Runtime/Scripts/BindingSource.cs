@@ -5,8 +5,13 @@ namespace LJVoyage.ObservationToolkit.Runtime
 {
     public class BindingSource<S, SProperty>
     {
-        private readonly Binding<S, SProperty> _binding;
+        protected readonly Binding<S, SProperty> _binding;
 
+        public Binding<S, SProperty> Binding
+        {
+            get { return _binding; }
+        }
+        
         public IConvert<SProperty, object> Converter
         {
             get => _binding.Converter;

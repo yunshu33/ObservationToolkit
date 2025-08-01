@@ -1,4 +1,5 @@
-﻿using LJVoyage.ObservationToolkit.Runtime.Converter;
+﻿using System;
+using LJVoyage.ObservationToolkit.Runtime.Converter;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -16,7 +17,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
     }
 
 
-    public abstract class Binder<S, SProperty>
+    public abstract class Binder<S, SProperty> 
     {
         public abstract void OneWay();
 
