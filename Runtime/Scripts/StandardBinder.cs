@@ -1,5 +1,6 @@
 ﻿using System;
 using LJVoyage.ObservationToolkit.Runtime.Converter;
+using UnityEngine;
 
 namespace LJVoyage.ObservationToolkit.Runtime
 {
@@ -11,11 +12,11 @@ namespace LJVoyage.ObservationToolkit.Runtime
     /// <typeparam name="TProperty"></typeparam>
     public class StandardBinder<S, SProperty, TProperty> : Binder<S, SProperty, TProperty>
     {
-        private Action<TProperty> _handler;
+        private readonly Action<TProperty> _handler;
 
-        private Action<S, TProperty> _multiHandler;
+        private readonly Action<S, TProperty> _multiHandler;
 
-        private Binding<S, SProperty> _binding;
+        private readonly Binding<S, SProperty> _binding;
 
         public bool isBinding = false;
 
@@ -29,16 +30,11 @@ namespace LJVoyage.ObservationToolkit.Runtime
             _binding = binding;
         }
 
-        public StandardBinder(Action<TProperty> handler)
-        {
-            _handler = handler;
-        }
-
-        public StandardBinder(Action<S, TProperty> multiHandler)
+        public StandardBinder(Action<S, TProperty> multiHandler, Binding<S, SProperty> binding)
         {
             _multiHandler = multiHandler;
+            _binding = binding;
         }
-
 
         /// <summary>
         /// 传入 转化器  则使用转换器 将 SProperty 转化为 TProperty 再传入 处理器
@@ -49,15 +45,29 @@ namespace LJVoyage.ObservationToolkit.Runtime
         /// </summary>
         public override void OneWay()
         {
-            _binding.Bind(this);
+            if (!isBinding)
+            {
+                _binding.Bind(this);
 
-            isBinding = true;
+                isBinding = true;
+            }
+            else
+            {
+                throw new Exception("已经绑定");
+            }
         }
 
         public override void OneWay(IConvert<SProperty, TProperty> convert)
         {
-            _convert = convert;
-            OneWay();
+            if (!isBinding)
+            {
+                _convert = convert;
+                OneWay();
+            }
+            else
+            {
+                throw new Exception("已经绑定");
+            }
         }
 
         protected override SProperty Convert(object value)
@@ -65,27 +75,24 @@ namespace LJVoyage.ObservationToolkit.Runtime
             return _convert.Convert(value);
         }
 
-        public override void Invoke(S source, object arg1, SProperty arg2)
+        public override void Invoke(S source, object obj, SProperty property)
         {
-            SProperty sProperty = arg2;
-
             TProperty tProperty;
 
             if (_convert != null)
             {
-                sProperty = _convert.Convert(arg1);
+                var sProperty = _convert.Convert(obj);
 
                 tProperty = _convert.Convert(sProperty);
             }
             else
             {
-                tProperty = sProperty is TProperty compatible ? compatible : default;
+                tProperty = (TProperty)obj;
             }
 
             _handler?.Invoke(tProperty);
             _multiHandler?.Invoke(default, tProperty);
         }
-
 
         public override void Unbind()
         {
@@ -94,7 +101,14 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         public override string HashCode
         {
-            get => _handler != null ? _handler.GetHashCode().ToString() : _multiHandler.GetHashCode().ToString();
+            get
+            {
+                var str = _handler != null ? _handler.GetHashCode().ToString() : _multiHandler.GetHashCode().ToString();
+
+                Debug.Log(str);
+
+                return str;
+            }
         }
     }
 }

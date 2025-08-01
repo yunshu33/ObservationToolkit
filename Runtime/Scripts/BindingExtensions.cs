@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using LJVoyage.ObservationToolkit.Runtime.Converter;
 
 
 namespace LJVoyage.ObservationToolkit.Runtime
@@ -30,6 +31,28 @@ namespace LJVoyage.ObservationToolkit.Runtime
         {
             return Binding(binding).ObserveValue(propertyExpression);
         }
+
+
+        /// <summary>
+        /// 来自 属性的绑定
+        /// </summary>
+        /// <param name="binding"></param>
+        /// <param name="propertyExpression"></param>
+        /// <param name="convert"></param>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="SProperty"></typeparam>
+        /// <returns></returns>
+        public static BindingSource<S, SProperty> For<S, SProperty>
+            (this S binding, Expression<Func<S, SProperty>> propertyExpression, IConvert<SProperty, object> convert)
+            where S : class, IBindingHolder
+        {
+            var bindingSource = Binding(binding).ObserveValue(propertyExpression);
+
+            bindingSource.Converter = convert;
+
+            return bindingSource;
+        }
+
 
         /// <summary>
         /// 来自 字段的绑定

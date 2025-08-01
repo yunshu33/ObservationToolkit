@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using LJVoyage.ObservationToolkit.Runtime.Converter;
 
 namespace LJVoyage.ObservationToolkit.Runtime
 {
@@ -12,9 +13,17 @@ namespace LJVoyage.ObservationToolkit.Runtime
     {
         private string _propertyName;
 
+        private IConvert<SProperty, object> _converter;
+
+        public IConvert<SProperty, object> Converter
+        {
+            get => _converter;
+            set => _converter = value;
+        }
+        
         private readonly WeakReference<object> _source;
 
-        private Dictionary<string, Binder<S, SProperty>> _binders;
+        private readonly Dictionary<string, Binder<S, SProperty>> _binders;
 
         public Binding(string propertyName, WeakReference<object> source)
         {
@@ -24,7 +33,6 @@ namespace LJVoyage.ObservationToolkit.Runtime
             _binders = new Dictionary<string, Binder<S, SProperty>>();
         }
 
-
         public void Bind(Binder<S, SProperty> binder)
         {
             _binders.Add(binder.HashCode, binder);
@@ -32,11 +40,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         public void Unbind(Binder<S, SProperty> binder)
         {
-            if (!_binders.ContainsKey(binder.HashCode))
-            {
-                _binders.Remove(binder.HashCode);
-            }
-            else
+            if (!_binders.Remove(binder.HashCode))
             {
                 throw new Exception("未找到绑定");
             }
@@ -49,9 +53,19 @@ namespace LJVoyage.ObservationToolkit.Runtime
                 throw new Exception("源对象已被释放");
             }
 
-            var source = (S)obj;
+            S source = (S)obj;
 
-            var property = (SProperty)value;
+            SProperty property;
+
+            if (Converter != null)
+            {
+                property = Converter.Convert(value);
+            }
+            else
+            {
+                property = (SProperty)value;
+            }
+
 
             foreach (var binder in _binders.Values)
             {

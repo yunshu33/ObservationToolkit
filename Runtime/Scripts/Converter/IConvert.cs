@@ -1,4 +1,6 @@
-﻿namespace LJVoyage.ObservationToolkit.Runtime.Converter
+﻿using UnityEngine;
+
+namespace LJVoyage.ObservationToolkit.Runtime.Converter
 {
     public interface IConvert<Source, out Target>
     {

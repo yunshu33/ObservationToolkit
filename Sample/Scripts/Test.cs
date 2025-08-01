@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using LJVoyage.ObservationToolkit.Runtime;
-using LJVoyage.ObservationToolkit.Runtime.UGUI;
+using LJVoyage.ObservationToolkit.Runtime.Converter;
 
 namespace LJVoyage.ObservationToolkit.Sample
 {
@@ -27,29 +27,22 @@ namespace LJVoyage.ObservationToolkit.Sample
 
             model.For(m => m.Value).To(TestEvent).OneWay();
             
+          
+            
             // model.For(m => m.Value).To(text).OneWay();
             //
             // model.For(m => m.Value).To(inputField).OneWay();
 
             button.onClick.AddListener(Add);
             
-            T(T);
-            T(T);
-            T(TestEvent);
+           
         }
 
 
-        private void T(int t)
+        private void TestEvent2(TestModel model, int value)
         {
-        }
-
-        private void T(string t)
-        {
-        }
-
-        private void T(Action<int> action)
-        {
-            UnityEngine.Debug.Log(action.Method.Name + action.GetHashCode());
+            
+            Debug.Log(value);
         }
 
 
@@ -62,11 +55,13 @@ namespace LJVoyage.ObservationToolkit.Sample
         [ContextMenu("AddListener")]
         private void AddListener()
         {
+            model.For(m=> m.Value, new Convert1()).To(TestEvent2).OneWay();
         }
 
         [ContextMenu("RemoveListener")]
         private void RemoveListener()
         {
+            model.For(m=> m.Value).To(TestEvent2).Unbind();
         }
 
         [ContextMenu("Add")]
