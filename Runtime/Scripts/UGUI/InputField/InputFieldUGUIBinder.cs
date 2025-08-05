@@ -9,12 +9,18 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 {
     public class InputFieldUGUIBinder<T, TProperty> : TwoWayUGUIBinderBase<T, TProperty, InputField, string>
     {
+        
+        private Action<string> _action;
+        
         public InputFieldUGUIBinder(BindingSource<T, TProperty> bindingSource, InputField target, Binding<T, TProperty> binding) : base(bindingSource, target, binding)
         {
         }
 
         protected override TProperty Convert(object value)
         {
+            
+           
+            
             throw new System.NotImplementedException();
         }
 
@@ -45,8 +51,12 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             var eventFieldRemoveAction = eventFieldRemove.MakeGenericMethod(typeof(string));
             var eventFieldRaiseAction = eventFieldRaise.MakeGenericMethod(typeof(string));
             
+           
+            
         }
 
+        
+        
         public override void TwoWay(IConvert<TProperty, string> convert)
         {
             throw new System.NotImplementedException();

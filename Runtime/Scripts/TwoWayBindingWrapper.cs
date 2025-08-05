@@ -56,6 +56,8 @@ namespace LJVoyage.ObservationToolkit.Runtime
                 // 如果是 string 转 int，调用 int.Parse 方法
                 var parseMethod = typeof(int).GetMethod("Parse", new[] { typeof(string) });
                 convertedValue = Expression.Call(parseMethod, valueParam);
+                
+                
             }
             else if (typeof(Source) == typeof(string) && propertyInfo.PropertyType == typeof(float))
             {
@@ -68,6 +70,8 @@ namespace LJVoyage.ObservationToolkit.Runtime
                 // 其他情况使用普通的 Convert 方法
                 convertedValue = Expression.Convert(valueParam, propertyInfo.PropertyType);
             }
+            
+            
 
             // 创建赋值表达式
             var assignExpression = Expression.Assign(propertyAccess, convertedValue);
