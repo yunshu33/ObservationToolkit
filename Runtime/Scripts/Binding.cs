@@ -76,7 +76,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
             foreach (var binder in _binders.Values)
             {
-                binder.Invoke(source, value, property);
+                binder.Invoke(source, property);
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using LJVoyage.ObservationToolkit.Runtime.Converter;
 using UnityEngine;
 
@@ -13,101 +14,103 @@ namespace LJVoyage.ObservationToolkit.Runtime
     public class StandardBinder<S, SProperty, TProperty> : Binder<S, SProperty, TProperty>
     {
         private readonly Action<TProperty> _handler;
-
         private readonly Action<S, TProperty> _multiHandler;
-
         private readonly Binding<S, SProperty> _binding;
-
-        public bool isBinding = false;
-
+        private readonly string _hash;
         private IConvert<SProperty, TProperty> _convert;
-
-        private string _hashCode;
 
         public StandardBinder(Action<TProperty> handler, Binding<S, SProperty> binding)
         {
-            _handler = handler;
-            _binding = binding;
+            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            _binding = binding ?? throw new ArgumentNullException(nameof(binding));
+            _hash = BuildHash(handler);
+            _binding.Bind(this);
         }
 
-        public StandardBinder(Action<S, TProperty> multiHandler, Binding<S, SProperty> binding)
+        public StandardBinder(Action<S, TProperty> handler, Binding<S, SProperty> binding)
         {
-            _multiHandler = multiHandler;
-            _binding = binding;
+            _multiHandler = handler ?? throw new ArgumentNullException(nameof(handler));
+            _binding = binding ?? throw new ArgumentNullException(nameof(binding));
+            _hash = BuildHash(handler);
+            _binding.Bind(this);
         }
 
-        /// <summary>
-        /// 传入 转化器  则使用转换器 将 SProperty 转化为 TProperty 再传入 处理器
-        /// 否则 直接强转 传入 处理器
-        /// 转换器分为两段
-        /// obj 到 source
-        /// 和 source 到 target
-        /// </summary>
+        private TProperty ConvertTarget(SProperty value)
+        {
+            if (_convert != null)
+            {
+                return _convert.Convert(value);
+            }
+
+            if (value == null)
+                return default;
+
+            var typeConverter = TypeDescriptor.GetConverter(typeof(TProperty));
+            
+            if (typeConverter != null && typeConverter.CanConvertFrom(typeof(SProperty)))
+            {
+                try
+                {
+                    return (TProperty)typeConverter.ConvertFrom(value);
+                }
+                catch
+                {
+                    // 忽略，尝试下一步
+                }
+            }
+
+            try
+            {
+                return (TProperty)System.Convert.ChangeType(value, typeof(TProperty));
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidCastException(
+                    $"无法将类型 {typeof(SProperty)} 转换为 {typeof(TProperty)}", ex);
+            }
+        }
+
+        public override void Invoke(S source, SProperty property)
+        {
+            TProperty targetValue = ConvertTarget(property);
+
+            if (_multiHandler != null)
+                _multiHandler(source, targetValue);
+            else
+                _handler?.Invoke(targetValue);
+        }
+
         public override void OneWay()
         {
-            if (!isBinding)
-            {
-                _binding.Bind(this);
-
-                isBinding = true;
-            }
-            else
-            {
-                throw new Exception("已经绑定");
-            }
+            // no-op
         }
 
         public override void OneWay(IConvert<SProperty, TProperty> convert)
         {
-            if (!isBinding)
-            {
-                _convert = convert;
-                OneWay();
-            }
-            else
-            {
-                throw new Exception("已经绑定");
-            }
+            _convert = convert;
         }
 
         protected override SProperty Convert(object value)
         {
-            return _convert.Convert(value);
-        }
-
-        public override void Invoke(S source, object obj, SProperty property)
-        {
-            TProperty tProperty;
-
-            if (_convert != null)
-            {
-                var sProperty = _convert.Convert(obj);
-
-                tProperty = _convert.Convert(sProperty);
-            }
-            else
-            {
-                tProperty = (TProperty)obj;
-            }
-
-            _handler?.Invoke(tProperty);
-            _multiHandler?.Invoke(default, tProperty);
+            return (SProperty)value;
         }
 
         public override void Unbind()
         {
-            _binding.Unbind(this);
+            // user cleanup if needed
         }
 
-        public override string HashCode
+        public override string HashCode => _hash;
+
+        private static string BuildHash(Delegate d)
         {
-            get
+            unchecked
             {
-                var str = _handler != null ? _handler.GetHashCode().ToString() : _multiHandler.GetHashCode().ToString();
-
-                Debug.Log(str);
-
-                return str;
+                int h = 17;
+                h = h * 31 + (d.Method?.MetadataToken ?? 0);
+                h = h * 31 + (d.Method?.GetHashCode() ?? 0);
+                h = h * 31 + (d.Target?.GetHashCode() ?? 0);
+                return h.ToString();
             }
         }
     }

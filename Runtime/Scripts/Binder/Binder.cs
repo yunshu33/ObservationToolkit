@@ -23,7 +23,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         protected abstract SProperty Convert(object value);
 
-        public abstract void Invoke(S source,object obj,SProperty property);
+        public abstract void Invoke(S source,SProperty property);
         
 
         public abstract void Unbind();

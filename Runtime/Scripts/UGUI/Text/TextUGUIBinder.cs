@@ -19,7 +19,7 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             return default;
         }
 
-        public override void Invoke(S source, object obj, SProperty property)
+        public override void Invoke(S source,  SProperty property)
         {
             if (_converter != null)
             {

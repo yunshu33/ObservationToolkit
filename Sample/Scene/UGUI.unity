@@ -402,8 +402,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   model:
     _value: 0
-    count: 0
-    _ttt: 0
   text: {fileID: 87891509}
   button: {fileID: 1418566629}
   inputField: {fileID: 0}

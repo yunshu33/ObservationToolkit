@@ -24,7 +24,7 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             throw new System.NotImplementedException();
         }
 
-        public override void Invoke(T source, object obj, TProperty property)
+        public override void Invoke(T source,  TProperty property)
         {
             
         }
