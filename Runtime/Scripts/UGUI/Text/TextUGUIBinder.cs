@@ -8,29 +8,31 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
     {
         private string _hashCode;
 
-
-        public TextUGUIBinder(BindingSource<S, SProperty> bindingSource, Text target, Binding<S, SProperty> binding) :
-            base(bindingSource, target, binding)
+        public TextUGUIBinder(Text target, Action<string> handler, Binding<S, SProperty> binding) : base(target, handler, binding)
         {
+            
         }
 
-        protected override SProperty Convert(object value)
-        {
-            return default;
-        }
 
-        public override void Invoke(S source,  SProperty property)
+        
+
+        
+        
+        public override void Invoke(S source, SProperty property)
         {
             if (_converter != null)
             {
                 _target.text = _converter.Convert(property);
             }
+            
             else
             {
                 _target.text = property.ToString();
             }
         }
 
+        
+        
         public override void Unbind()
         {
             _binding.Unbind(this);
@@ -44,6 +46,8 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
                 OneWay();
             }
         }
+
+        
     }
 
     public class TextBindingEventProxy : UIBindingEventProxy<Text>

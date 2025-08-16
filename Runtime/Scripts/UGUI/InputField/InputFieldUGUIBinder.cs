@@ -11,17 +11,11 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
     {
         
         private Action<string> _action;
-        
-        public InputFieldUGUIBinder(BindingSource<T, TProperty> bindingSource, InputField target, Binding<T, TProperty> binding) : base(bindingSource, target, binding)
-        {
-        }
 
-        protected override TProperty Convert(object value)
+
+        public InputFieldUGUIBinder(InputField target, Action<string> handler, Binding<T, TProperty> binding) : base(target, handler, binding)
         {
-            
            
-            
-            throw new System.NotImplementedException();
         }
 
         public override void Invoke(T source,  TProperty property)
@@ -61,5 +55,7 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
         {
             throw new System.NotImplementedException();
         }
+
+       
     }
 }

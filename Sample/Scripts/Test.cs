@@ -57,7 +57,8 @@ namespace LJVoyage.ObservationToolkit.Sample
         [ContextMenu("RemoveListener")]
         private void RemoveListener()
         {
-            model.For(m => m.Value).To(TestEvent2).Unbind();
+            // model.For(m => m.Value).To(TestEvent2).Unbind();
+            model.For(m => m.Value).To(TestEvent).Unbind();
         }
 
         [ContextMenu("Add")]

@@ -42,14 +42,17 @@ namespace LJVoyage.ObservationToolkit.Runtime
         {
             var hashcode = binder.HashCode;
 
-            if (_binders.TryGetValue(binder.HashCode, out Binder<S, SProperty> binder2))
+            if (_binders.TryGetValue(binder.HashCode, out Binder<S, SProperty> target))
             {
-                binder2.Unbind();
+                var count = _binders.Count;
+
                 _binders.Remove(hashcode);
+
+                UnityEngine.Debug.Log($"解绑成功 {count}-> {_binders.Count}");
             }
             else
             {
-                throw new Exception("未找到绑定");
+                throw new Exception($"未找到绑定 ");
             }
         }
 

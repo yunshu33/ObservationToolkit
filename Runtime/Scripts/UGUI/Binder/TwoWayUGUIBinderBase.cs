@@ -10,7 +10,7 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
     public abstract class TwoWayUGUIBinderBase<T, TProperty, U, UProperty> : OneWayUGUIBinderBase<T, TProperty, U, UProperty>,
         ITwoWayBinder<T, TProperty, U, UProperty> where U : UIBehaviour
     {
-        protected TwoWayUGUIBinderBase(BindingSource<T, TProperty> bindingSource, U target, Binding<T, TProperty> binding) : base(bindingSource, target, binding)
+        protected TwoWayUGUIBinderBase(U target, Action<UProperty> handler, Binding<T, TProperty> binding) : base(target, handler, binding)
         {
             
         }

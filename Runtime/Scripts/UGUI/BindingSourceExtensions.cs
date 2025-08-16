@@ -7,12 +7,12 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
     {
         public static TextUGUIBinder<S,SProperty> To<S,SProperty>(this BindingSource<S,SProperty> binder, Text target)
         {
-          return new TextUGUIBinder<S, SProperty>(binder,target,binder.Binding);
+          return new TextUGUIBinder<S, SProperty>(target,null,binder.Binding);
         }
 
         public static InputFieldUGUIBinder<T,TProperty> To<T,TProperty>(this BindingSource<T,TProperty> binder, InputField target)
         {
-          return new InputFieldUGUIBinder<T, TProperty>(binder,target,binder.Binding);
+          return new InputFieldUGUIBinder<T, TProperty>(target,null,binder.Binding);
         }
     }
 }
