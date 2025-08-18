@@ -12,7 +12,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
     /// <typeparam name="S"></typeparam>
     /// <typeparam name="SProperty"></typeparam>
     /// <typeparam name="TProperty"></typeparam>
-    public class StandardBinder<S, SProperty, TProperty> : Binder<S, SProperty, TProperty>
+    public class StandardBinder<S, SProperty, TProperty> : Binder<S, SProperty, TProperty> 
     {
        
 

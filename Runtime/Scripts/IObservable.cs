@@ -3,9 +3,9 @@
 namespace LJVoyage.ObservationToolkit.Runtime
 {
     /// <summary>
-    /// 绑定句柄持有者
+    /// 可观察
     /// </summary>
-    public interface IBindingHolder
+    public interface IObservable
     {
         public BindingHandler BindingHandler { get; set; }
 
@@ -13,6 +13,5 @@ namespace LJVoyage.ObservationToolkit.Runtime
         {
             BindingHandler?.OnPropertyChanged(value, propertyName);
         }
-        
     }
 }

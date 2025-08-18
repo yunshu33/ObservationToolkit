@@ -11,7 +11,9 @@ namespace LJVoyage.ObservationToolkit.Runtime
     /// <typeparam name="SProperty"></typeparam>
     public class Binding<S, SProperty> : Binding
     {
-        private string _propertyName;
+        private readonly string _propertyName;
+        
+        public string PropertyName => _propertyName;
 
         private IConvert<SProperty, object> _converter;
 
@@ -22,6 +24,19 @@ namespace LJVoyage.ObservationToolkit.Runtime
         }
 
         private readonly WeakReference<object> _source;
+
+        public S Source
+        {
+            get
+            {
+                if (!_source.TryGetTarget(out var obj))
+                {
+                    throw new Exception("源对象已被释放");
+                }
+
+                return (S)obj;
+            }
+        }
 
         private readonly Dictionary<string, Binder<S, SProperty>> _binders;
 
@@ -69,13 +84,12 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
             if (Converter != null)
             {
-                property = Converter.Convert(value);
+                property = Converter.ObjectConvertSource(value);
             }
             else
             {
                 property = (SProperty)value;
             }
-
 
             foreach (var binder in _binders.Values)
             {

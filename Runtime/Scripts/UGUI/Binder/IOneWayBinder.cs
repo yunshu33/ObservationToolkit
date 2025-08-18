@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 {
-    public interface IOneWayBinder<T, TProperty, U, in UProperty> where U : UIBehaviour
+    public interface IOneWayBinder<T, TProperty, U, UProperty> where U : UIBehaviour
     {
         void OneWay(IConvert<TProperty, UProperty> convert);
 

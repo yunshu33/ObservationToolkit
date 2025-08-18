@@ -2,7 +2,7 @@
 
 namespace LJVoyage.ObservationToolkit.Runtime
 {
-    public interface IOneWayBinder<S, SProperty, in TProperty>
+    public interface IOneWayBinder<S, SProperty, TProperty>
     {
         void OneWay();
 

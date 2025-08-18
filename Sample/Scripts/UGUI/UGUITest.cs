@@ -3,6 +3,7 @@ using LJVoyage.ObservationToolkit.Runtime;
 using LJVoyage.ObservationToolkit.Runtime.Converter;
 using LJVoyage.ObservationToolkit.Runtime.UGUI;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace LJVoyage.ObservationToolkit.Sample.UGUI
@@ -20,8 +21,14 @@ namespace LJVoyage.ObservationToolkit.Sample.UGUI
         private void Awake()
         {
             button.onClick.AddListener(OnClick);
+            
+          
+            
         }
 
+
+      
+        
         private void OnClick()
         {
             model.Value++;
@@ -30,21 +37,26 @@ namespace LJVoyage.ObservationToolkit.Sample.UGUI
         [ContextMenu("AddListener")]
         private void AddListener()
         {
-            model.For(m => m.Value).To(text).OneWay(new FloatToStringConverter());
+            model.For(m => m.Value).To(text).OneWay();
             
-            model.For(m=>m.Value).To(inputField).TwoWay(input=> input.onSubmit);
+            model.For(m=>m.Value).To(inputField).TwoWay(input=> input.onValueChanged);
         }
 
         public class FloatToStringConverter : IConvert<float, string>
         {
-            public float Convert(object source)
+            public float ObjectConvertSource(object source)
             {
                 return (float)(source);
             }
 
-            public string Convert(float source)
+            public string SourceConvertTarget(float source)
             {
                 return source.ToString("F2");
+            }
+
+            public float TargetConvertSource(string target)
+            {
+                throw new NotImplementedException();
             }
         }
         

@@ -1,5 +1,6 @@
 ﻿using System;
 using LJVoyage.ObservationToolkit.Runtime.Converter;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace LJVoyage.ObservationToolkit.Runtime.UGUI
@@ -8,31 +9,24 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
     {
         private string _hashCode;
 
-        public TextUGUIBinder(Text target, Action<string> handler, Binding<S, SProperty> binding) : base(target, handler, binding)
+        public TextUGUIBinder(Text target, Action<string> handler, Binding<S, SProperty> binding) : base(target,
+            handler, binding)
         {
-            
         }
 
-
-        
-
-        
-        
         public override void Invoke(S source, SProperty property)
         {
             if (_converter != null)
             {
-                _target.text = _converter.Convert(property);
+                Handler?.Invoke(_converter.SourceConvertTarget(property));
             }
-            
             else
             {
-                _target.text = property.ToString();
+                Handler?.Invoke(property.ToString());
             }
         }
 
-        
-        
+
         public override void Unbind()
         {
             _binding.Unbind(this);
@@ -46,15 +40,13 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
                 OneWay();
             }
         }
-
-        
     }
 
-    public class TextBindingEventProxy : UIBindingEventProxy<Text>
+    public class TextBindingEventProxy : UIBindingEventProxy<Text, string>
     {
-        public override void SetValue(object value)
+        public override void SetValue(string value)
         {
-            _target.text = value.ToString();
+            Target.text = value;
         }
     }
 }

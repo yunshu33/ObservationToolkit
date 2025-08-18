@@ -10,7 +10,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
 {
     public static class BindingExtensions
     {
-        public static BindingHandler Binding(this IBindingHolder bindingHandler)
+        public static BindingHandler Binding(this IObservable bindingHandler)
         {
             bindingHandler.BindingHandler ??= new BindingHandler(bindingHandler);
 
@@ -27,31 +27,31 @@ namespace LJVoyage.ObservationToolkit.Runtime
         /// <typeparam name="SProperty"></typeparam>
         /// <returns></returns>
         public static BindingSource<S, SProperty> For<S, SProperty>(this S binding,
-            Expression<Func<S, SProperty>> propertyExpression) where S : class, IBindingHolder
+            Expression<Func<S, SProperty>> propertyExpression) where S : class, IObservable
         {
             return Binding(binding).ObserveValue(propertyExpression);
         }
 
 
-        /// <summary>
-        /// 来自 属性的绑定
-        /// </summary>
-        /// <param name="binding"></param>
-        /// <param name="propertyExpression"></param>
-        /// <param name="convert"></param>
-        /// <typeparam name="S"></typeparam>
-        /// <typeparam name="SProperty"></typeparam>
-        /// <returns></returns>
-        public static BindingSource<S, SProperty> For<S, SProperty>
-            (this S binding, Expression<Func<S, SProperty>> propertyExpression, IConvert<SProperty, object> convert)
-            where S : class, IBindingHolder
-        {
-            var bindingSource = Binding(binding).ObserveValue(propertyExpression);
-
-            bindingSource.Converter = convert;
-
-            return bindingSource;
-        }
+        // /// <summary>
+        // /// 来自 属性的绑定
+        // /// </summary>
+        // /// <param name="binding"></param>
+        // /// <param name="propertyExpression"></param>
+        // /// <param name="convert"></param>
+        // /// <typeparam name="S"></typeparam>
+        // /// <typeparam name="SProperty"></typeparam>
+        // /// <returns></returns>
+        // public static BindingSource<S, SProperty> For<S, SProperty>
+        //     (this S binding, Expression<Func<S, SProperty>> propertyExpression, IConvert<SProperty, object> convert)
+        //     where S : class, IObservable
+        // {
+        //     var bindingSource = Binding(binding).ObserveValue(propertyExpression);
+        //
+        //     bindingSource.Converter = convert;
+        //
+        //     return bindingSource;
+        // }
 
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
         /// <param name="propertyName"></param>
         /// <typeparam name="SProperty"></typeparam>
         /// <returns></returns>
-        public static bool SetField<SProperty>(this IBindingHolder binding, ref SProperty field, SProperty value,
+        public static bool SetField<SProperty>(this IObservable binding, ref SProperty field, SProperty value,
             [CallerMemberName] string propertyName = null)
         {
             if (EqualityComparer<SProperty>.Default.Equals(field, value)) return false;

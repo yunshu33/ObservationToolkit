@@ -11,13 +11,13 @@ namespace LJVoyage.ObservationToolkit.Runtime
     {
         protected Action<Source> _action;
 
-        private readonly IBindingHolder _bindingHandler;
+        private readonly IObservable _bindingHandler;
 
         protected readonly Target _target;
 
         private readonly string _propertyName;
 
-        protected TwoWayBindingWrapper(Target target, IBindingHolder bindingHandler, string propertyName)
+        protected TwoWayBindingWrapper(Target target, IObservable bindingHandler, string propertyName)
         {
             _bindingHandler = bindingHandler;
             _target = target;
@@ -42,7 +42,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
             // 创建参数表达式
             var valueParam = Expression.Parameter(typeof(Source), "value");
             // 创建 _binderHandler 的参数表达式
-            var binderHandlerParam = Expression.Parameter(typeof(IBindingHolder), "binderHandler");
+            var binderHandlerParam = Expression.Parameter(typeof(IObservable), "binderHandler");
             
             // 将 binderHandlerParam 转换为 binderHandlerType 类型
             var convertedBinderHandlerParam = Expression.Convert(binderHandlerParam, binderHandlerType);
@@ -76,7 +76,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
             // 创建赋值表达式
             var assignExpression = Expression.Assign(propertyAccess, convertedValue);
             // 创建 Lambda 表达式
-            var lambda = Expression.Lambda<Action<IBindingHolder, Source>>(assignExpression, binderHandlerParam, valueParam);
+            var lambda = Expression.Lambda<Action<IObservable, Source>>(assignExpression, binderHandlerParam, valueParam);
 
             // 编译 Lambda 表达式得到委托
             var compiledLambda = lambda.Compile();

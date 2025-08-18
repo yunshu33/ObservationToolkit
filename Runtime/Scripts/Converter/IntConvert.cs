@@ -2,32 +2,47 @@
 {
     public class IntConvert : IConvert<int, string>, IConvert<int, float>, IConvert<int, double>
     {
-        int IConvert<int, string>.Convert(object source)
+        int IConvert<int, string>.ObjectConvertSource(object source)
         {
             throw new System.NotImplementedException();
         }
 
-        int IConvert<int, float>.Convert(object source)
+        int IConvert<int, float>.ObjectConvertSource(object source)
         {
             throw new System.NotImplementedException();
         }
 
-        int IConvert<int, double>.Convert(object source)
+        int IConvert<int, double>.ObjectConvertSource(object source)
         {
             throw new System.NotImplementedException();
         }
 
-        string IConvert<int, string>.Convert(int source)
+        string IConvert<int, string>.SourceConvertTarget(int source)
         {
             return source.ToString();
         }
 
-        float IConvert<int, float>.Convert(int source)
+        public int TargetConvertSource(double target)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public int TargetConvertSource(float target)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public int TargetConvertSource(string target)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        float IConvert<int, float>.SourceConvertTarget(int source)
         {
             return source;
         }
 
-        double IConvert<int, double>.Convert(int source)
+        double IConvert<int, double>.SourceConvertTarget(int source)
         {
             return source;
         }

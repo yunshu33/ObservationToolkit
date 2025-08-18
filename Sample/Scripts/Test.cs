@@ -51,7 +51,8 @@ namespace LJVoyage.ObservationToolkit.Sample
         [ContextMenu("AddListener")]
         private void AddListener()
         {
-            model.For(m => m.Value, new Convert1()).To(TestEvent2).OneWay();
+            model.For(m => m.Value).To(TestEvent2).OneWay();
+           // model.For(m => m.Value, new Convert1()).To(TestEvent2).OneWay();
         }
 
         [ContextMenu("RemoveListener")]
@@ -99,9 +100,9 @@ namespace LJVoyage.ObservationToolkit.Sample
     }
 
     [Serializable]
-    public class TestModel2 : IBindingHolder
+    public class TestModel2 : IObservable
     {
-        BindingHandler IBindingHolder.BindingHandler { get; set; }
+        BindingHandler IObservable.BindingHandler { get; set; }
 
         public float Value
         {
@@ -113,7 +114,7 @@ namespace LJVoyage.ObservationToolkit.Sample
     }
 
 
-    public interface ITTT : IBindingHolder
+    public interface ITTT : IObservable
     {
         public bool TTT { get; set; }
     }

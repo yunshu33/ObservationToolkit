@@ -13,6 +13,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
     /// <typeparam name="SProperty">源属性</typeparam>
     /// <typeparam name="TProperty">目标属性</typeparam>    
     public abstract class Binder<S, SProperty, TProperty> : Binder<S, SProperty>, IOneWayBinder<S, SProperty, TProperty>
+
     {
         private Action<TProperty> _handler;
 
@@ -23,6 +24,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
         }
 
         private Action<S, TProperty> _multiHandler;
+
         public Action<S, TProperty> MultiHandler
         {
             get { return _multiHandler; }
@@ -34,10 +36,10 @@ namespace LJVoyage.ObservationToolkit.Runtime
         public override string MethodName => _methodName;
 
         private readonly string _hash;
-        
+
         public override string HashCode => _hash;
 
-        private IConvert<SProperty, TProperty> _convert;
+        protected IConvert<SProperty, TProperty> _convert;
 
         /// <summary>
         /// 类型一致
@@ -49,7 +51,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
             _handler = handler ?? throw new ArgumentNullException(nameof(handler));
 
             _methodName = handler.Method.Name;
-            
+
             _hash = BuildHash(handler);
 
             _isTypeEqual = typeof(TProperty) == typeof(SProperty);
@@ -67,11 +69,13 @@ namespace LJVoyage.ObservationToolkit.Runtime
         }
 
 
-        private TProperty ConvertTarget(SProperty value)
+        protected TypeConverter _targetPropertyConverter;
+        
+        protected TProperty SourceConvertTarget(SProperty value)
         {
             if (_convert != null)
             {
-                return _convert.Convert(value);
+                return _convert.SourceConvertTarget(value);
             }
 
             if (value == null)
@@ -82,13 +86,14 @@ namespace LJVoyage.ObservationToolkit.Runtime
                 return (TProperty)(object)value;
             }
 
-            var typeConverter = TypeDescriptor.GetConverter(typeof(TProperty));
+            _targetPropertyConverter ??= TypeDescriptor.GetConverter(typeof(TProperty));
+            
 
-            if (typeConverter.CanConvertFrom(typeof(SProperty)))
+            if (_targetPropertyConverter.CanConvertFrom(typeof(SProperty)))
             {
                 try
                 {
-                    return (TProperty)typeConverter.ConvertFrom(value);
+                    return (TProperty)_targetPropertyConverter.ConvertFrom(value);
                 }
                 catch
                 {
@@ -109,7 +114,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         public override void Invoke(S source, SProperty property)
         {
-            TProperty targetValue = ConvertTarget(property);
+            TProperty targetValue = SourceConvertTarget(property);
 
             _multiHandler?.Invoke(source, targetValue);
 
@@ -160,7 +165,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
         {
             _binding = binding ?? throw new ArgumentNullException(nameof(binding));
         }
-        
+
         public abstract void OneWay();
 
         public abstract void Invoke(S source, SProperty property);

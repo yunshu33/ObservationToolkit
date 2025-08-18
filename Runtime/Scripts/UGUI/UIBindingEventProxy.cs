@@ -3,10 +3,24 @@ using UnityEngine.EventSystems;
 
 namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 {
-    public abstract class UIBindingEventProxy<T> : UIBehaviour where T : UIBehaviour
+    public abstract class UIBindingEventProxy<T,TProperty> : UIBehaviour where T : UIBehaviour
     {
-        protected T _target;
+        private T _target;
 
+
+        public T Target
+        {
+            get
+            {
+                if (_target == null)
+                {
+                    _target = GetComponent<T>();
+                }
+
+                return _target;
+            }
+        }
+        
         public Action onDestroy;
         
         protected override void Awake()
@@ -15,7 +29,7 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             _target = GetComponent<T>();
         }
 
-        public abstract void SetValue(object value);
+        public abstract void SetValue(TProperty value);
         
         protected override void OnDestroy()
         {

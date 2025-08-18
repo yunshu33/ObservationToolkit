@@ -3,7 +3,7 @@ using LJVoyage.ObservationToolkit.Runtime.Converter;
 
 namespace LJVoyage.ObservationToolkit.Runtime
 {
-    public class BindingSource<S, SProperty>
+    public class BindingSource<S, SProperty> 
     {
         protected readonly Binding<S, SProperty> _binding;
 
