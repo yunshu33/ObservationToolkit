@@ -8,5 +8,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
 
         void OneWay(IConvert<SProperty, TProperty> convert);
+        
+        void Unbind();
     }
 }

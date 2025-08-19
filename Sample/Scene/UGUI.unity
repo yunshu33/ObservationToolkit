@@ -429,7 +429,7 @@ MonoBehaviour:
     _value: 0
   text: {fileID: 87891509}
   button: {fileID: 1418566629}
-  inputField: {fileID: 0}
+  inputField: {fileID: 892750524}
 --- !u!114 &676506790
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -557,13 +557,13 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 892750525}
   m_TextComponent: {fileID: 1604398118}
   m_Placeholder: {fileID: 1722687724}
-  m_ContentType: 0
+  m_ContentType: 2
   m_InputType: 0
   m_AsteriskChar: 42
-  m_KeyboardType: 0
+  m_KeyboardType: 4
   m_LineType: 0
   m_HideMobileInput: 0
-  m_CharacterValidation: 0
+  m_CharacterValidation: 1
   m_CharacterLimit: 0
   m_OnSubmit:
     m_PersistentCalls:

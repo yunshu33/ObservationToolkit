@@ -62,6 +62,8 @@ namespace LJVoyage.ObservationToolkit.Runtime
                 var count = _binders.Count;
 
                 _binders.Remove(hashcode);
+                
+                target.OnUnbind();
 
                 UnityEngine.Debug.Log($"解绑成功 {count}-> {_binders.Count}");
             }

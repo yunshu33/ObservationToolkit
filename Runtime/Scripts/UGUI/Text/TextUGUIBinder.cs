@@ -32,6 +32,11 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             _binding.Unbind(this);
         }
 
+        public override void OnUnbind()
+        {
+            
+        }
+
         public override void OneWay(IConvert<SProperty, string> convert)
         {
             if (!isBinding)

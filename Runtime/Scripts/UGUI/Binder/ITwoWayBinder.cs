@@ -12,6 +12,6 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 
         void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression);
         
-        void TwoWay(IConvert<TProperty, UProperty> convert);
+        void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression,IConvert<TProperty, UProperty> convert);
     }
 }

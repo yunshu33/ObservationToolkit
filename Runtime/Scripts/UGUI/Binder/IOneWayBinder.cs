@@ -7,7 +7,6 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
     {
         void OneWay(IConvert<TProperty, UProperty> convert);
 
-
         void OneWay();
     }
 }

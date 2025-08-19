@@ -22,8 +22,6 @@ namespace LJVoyage.ObservationToolkit.Sample.UGUI
         {
             button.onClick.AddListener(OnClick);
             
-          
-            
         }
 
 
@@ -65,6 +63,7 @@ namespace LJVoyage.ObservationToolkit.Sample.UGUI
         private void RemoveListener()
         {
             model.For(m => m.Value).To(text).Unbind();
+            model.For(m=>m.Value).To(inputField).Unbind();
         }
     }
 }

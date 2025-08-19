@@ -133,10 +133,13 @@ namespace LJVoyage.ObservationToolkit.Runtime
         }
 
 
-        public override void Unbind()
+        public override void OnUnbind()
         {
-            _binding.Unbind(this);
+            
         }
+        
+        
+     
 
         private static string BuildHash(Delegate d)
         {
@@ -172,6 +175,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         public abstract void Unbind();
 
+        public abstract void OnUnbind();
 
         public abstract string HashCode { get; }
     }

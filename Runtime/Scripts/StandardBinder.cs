@@ -24,8 +24,15 @@ namespace LJVoyage.ObservationToolkit.Runtime
         {
         }
 
-        
 
-       
+        public override void Unbind()
+        {
+            _binding.Unbind(this);
+        }
+
+        public override void OnUnbind()
+        {
+           
+        }
     }
 }

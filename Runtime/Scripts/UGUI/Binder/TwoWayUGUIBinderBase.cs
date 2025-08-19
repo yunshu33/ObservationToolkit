@@ -12,11 +12,20 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
     public abstract class TwoWayUGUIBinderBase<S, SProperty, U, UProperty> : OneWayUGUIBinderBase<S, SProperty, U, UProperty>,
         ITwoWayBinder<S, SProperty, U, UProperty> where U : UIBehaviour 
     {
+        protected UnityAction<string> _uiAction;
+        
+        protected UnityEvent<UProperty> _uiEvent;
+        
         protected TwoWayUGUIBinderBase(U target, Action<UProperty> handler, Binding<S, SProperty> binding) : base(target, handler, binding)
         {
             
         }
 
+
+       
+        
+
+        public abstract void Unbind(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression);
 
 
         protected UnityAction<UProperty> CreateSetter()
@@ -102,6 +111,7 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
         
         public abstract void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression);
 
-        public abstract void TwoWay(IConvert<SProperty, UProperty> convert);
+        public abstract void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression,
+            IConvert<SProperty, UProperty> convert);
     }
 }
