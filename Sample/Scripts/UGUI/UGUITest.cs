@@ -18,26 +18,32 @@ namespace LJVoyage.ObservationToolkit.Sample.UGUI
 
         public InputField inputField;
 
+        public Toggle toggle;
+        
+        public Slider slider;
+
         private void Awake()
         {
             button.onClick.AddListener(OnClick);
-            
         }
 
-
-      
-        
         private void OnClick()
         {
             model.Value++;
+
+            model.IsOn = !model.IsOn;
         }
-        
+
         [ContextMenu("AddListener")]
         private void AddListener()
         {
             model.For(m => m.Value).To(text).OneWay();
+
+            model.For(m => m.Value).To(inputField).TwoWay(input => input.onValueChanged);
+
+            model.For(m => m.IsOn).To(toggle).TwoWay(toggle => toggle.onValueChanged);
             
-            model.For(m=>m.Value).To(inputField).TwoWay(input=> input.onValueChanged);
+            model.For(m => m.Value).To(slider).TwoWay(slider => slider.onValueChanged);
         }
 
         public class FloatToStringConverter : IConvert<float, string>
@@ -57,13 +63,15 @@ namespace LJVoyage.ObservationToolkit.Sample.UGUI
                 throw new NotImplementedException();
             }
         }
-        
-        
+
+
         [ContextMenu("RemoveListener")]
         private void RemoveListener()
         {
             model.For(m => m.Value).To(text).Unbind();
-            model.For(m=>m.Value).To(inputField).Unbind();
+            model.For(m => m.Value).To(inputField).Unbind(input => input.onValueChanged);
+            model.For(m => m.IsOn).To(toggle).Unbind(toggle => toggle.onValueChanged);
+            model.For(m => m.Value).To(slider).Unbind(slider => slider.onValueChanged);
         }
     }
 }

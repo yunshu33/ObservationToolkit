@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using LJVoyage.ObservationToolkit.Runtime.Converter;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -12,7 +13,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
     /// <typeparam name="S">源</typeparam>
     /// <typeparam name="SProperty">源属性</typeparam>
     /// <typeparam name="TProperty">目标属性</typeparam>    
-    public abstract class Binder<S, SProperty, TProperty> : Binder<S, SProperty>, IOneWayBinder<S, SProperty, TProperty>
+    public abstract class Binder<S, SProperty, TProperty> : Binder<S, SProperty>
 
     {
         private Action<TProperty> _handler;
@@ -35,7 +36,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         public override string MethodName => _methodName;
 
-        private readonly string _hash;
+        protected string _hash;
 
         public override string HashCode => _hash;
 
@@ -121,27 +122,9 @@ namespace LJVoyage.ObservationToolkit.Runtime
             _handler?.Invoke(targetValue);
         }
 
-        public override void OneWay()
-        {
-            _binding.Bind(this);
-        }
-
-        public virtual void OneWay(IConvert<SProperty, TProperty> convert)
-        {
-            _convert = convert;
-            OneWay();
-        }
-
-
-        public override void OnUnbind()
-        {
-            
-        }
-        
-        
      
 
-        private static string BuildHash(Delegate d)
+        protected string BuildHash(Delegate d)
         {
             unchecked
             {
@@ -149,7 +132,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
                 h = h * 31 + (d.Method?.MetadataToken ?? 0);
                 h = h * 31 + (d.Method?.GetHashCode() ?? 0);
                 h = h * 31 + (d.Target?.GetHashCode() ?? 0);
-                return h.ToString();
+                return h  + "+" + GetType().Name ;
             }
         }
     }
@@ -169,11 +152,9 @@ namespace LJVoyage.ObservationToolkit.Runtime
             _binding = binding ?? throw new ArgumentNullException(nameof(binding));
         }
 
-        public abstract void OneWay();
+      
 
         public abstract void Invoke(S source, SProperty property);
-
-        public abstract void Unbind();
 
         public abstract void OnUnbind();
 

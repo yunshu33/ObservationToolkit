@@ -52,7 +52,7 @@ namespace LJVoyage.ObservationToolkit.Sample
         private void AddListener()
         {
             model.For(m => m.Value).To(TestEvent2).OneWay();
-           // model.For(m => m.Value, new Convert1()).To(TestEvent2).OneWay();
+            // model.For(m => m.Value, new Convert1()).To(TestEvent2).OneWay();
         }
 
         [ContextMenu("RemoveListener")]
@@ -108,6 +108,15 @@ namespace LJVoyage.ObservationToolkit.Sample
         {
             get => _value;
             set { this.SetField(ref _value, value); }
+        }
+
+
+        [SerializeField] private bool ison;
+
+        public bool IsOn
+        {
+            get => ison;
+            set { this.SetField(ref ison, value); }
         }
 
         [SerializeField] private float _value;

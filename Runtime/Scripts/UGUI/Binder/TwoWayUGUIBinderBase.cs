@@ -1,31 +1,70 @@
-﻿
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
 using LJVoyage.ObservationToolkit.Runtime.Converter;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 {
-    public abstract class TwoWayUGUIBinderBase<S, SProperty, U, UProperty> : OneWayUGUIBinderBase<S, SProperty, U, UProperty>,
-        ITwoWayBinder<S, SProperty, U, UProperty> where U : UIBehaviour 
+    public abstract class TwoWayUGUIBinderBase<S, SProperty, U, UProperty> :
+        OneWayUGUIBinderBase<S, SProperty, U, UProperty>,
+        ITwoWayBinder<S, SProperty, U, UProperty> where U : UIBehaviour
     {
-        protected UnityAction<string> _uiAction;
-        
+        protected UnityAction<UProperty> _uiAction;
+
         protected UnityEvent<UProperty> _uiEvent;
-        
-        protected TwoWayUGUIBinderBase(U target, Action<UProperty> handler, Binding<S, SProperty> binding) : base(target, handler, binding)
+
+        protected TypeConverter _sourcePropertyConverter;
+
+        public override string HashCode => _hash + _uiEventName;
+
+        protected string _uiEventName;
+
+        protected TwoWayUGUIBinderBase(U target, Action<UProperty> handler, Binding<S, SProperty> binding) : base(
+            target, handler, binding)
         {
-            
         }
 
 
-       
-        
+        public void Unbind(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression)
+        {
+            if (propertyExpression.Body is MemberExpression memberExp)
+            {
+                _binding.Unbind(_hash + "+" + memberExp.Member.Name);
+            }
+        }
 
-        public abstract void Unbind(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression);
+        public override void Unbind()
+        {
+            _binding.Unbind(HashCode);
+        }
+
+        public override void OnUnbind()
+        {
+            if (_uiAction != null)
+            {
+                Debug.Log($"UGUI 事件移除前:{GetRuntimeListenerCount(_uiEvent)}");
+                _uiEvent.RemoveListener(_uiAction);
+                Debug.Log($"UGUI 事件移除后:{GetRuntimeListenerCount(_uiEvent)}");
+            }
+        }
+
+
+        public static int GetRuntimeListenerCount(UnityEventBase unityEvent)
+        {
+            var field = typeof(UnityEventBase).GetField("m_Calls",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var invokeCallList = field.GetValue(unityEvent);
+
+            var callsField = invokeCallList.GetType().GetField("m_RuntimeCalls",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var runtimeCalls = callsField.GetValue(invokeCallList) as System.Collections.ICollection;
+
+            return runtimeCalls?.Count ?? 0;
+        }
 
 
         protected UnityAction<UProperty> CreateSetter()
@@ -60,9 +99,7 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             return lambda.Compile();
         }
 
-        
-        protected TypeConverter _sourcePropertyConverter;
-        
+
         /// <summary>
         /// 目标转换源
         /// </summary>
@@ -84,7 +121,7 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             }
 
             _sourcePropertyConverter ??= TypeDescriptor.GetConverter(typeof(SProperty));
-            
+
 
             if (_sourcePropertyConverter.CanConvertFrom(typeof(SProperty)))
             {
@@ -108,10 +145,37 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
                     $"无法将类型 {typeof(SProperty)} 转换为 {typeof(SProperty)}", ex);
             }
         }
-        
-        public abstract void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression);
 
-        public abstract void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression,
-            IConvert<SProperty, UProperty> convert);
+        public void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression)
+        {
+            if (propertyExpression.Body is MemberExpression memberExp)
+            {
+                _uiEventName = "+" + memberExp.Member.Name;
+            }
+            else
+            {
+                throw new Exception($"UGUI 事件绑定失败，事件名：{_uiEventName}");
+            }
+
+            // 编译表达式并获取委托
+            Func<U, UnityEvent<UProperty>> propertyAccessor = propertyExpression.Compile();
+
+            // 调用委托获取 UnityEvent<string>
+            _uiEvent = propertyAccessor(_target);
+
+            _uiAction = CreateSetter();
+
+            _uiEvent.AddListener(_uiAction);
+
+            OneWay();
+        }
+
+
+        public void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression,
+            IConvert<SProperty, UProperty> convert)
+        {
+            _convert = convert;
+            TwoWay(propertyExpression);
+        }
     }
 }

@@ -25,7 +25,6 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
         {
             if (target.gameObject.TryGetComponent<InputFieldBindingEventProxy>(out var proxy))
             {
-                
             }
             else
             {
@@ -33,6 +32,35 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             }
 
             return new InputFieldUGUIBinder<S, SProperty>(target, proxy.SetValue, binder.Binding);
+        }
+        
+        
+        public static ToggleBinder<S,SProperty> To<S, SProperty>(this BindingSource<S, SProperty> binder,
+            Toggle target)
+        {
+            if (target.gameObject.TryGetComponent<ToggleBindingEventProxy>(out var proxy))
+            {
+            }
+            else
+            {
+                proxy = target.gameObject.AddComponent<ToggleBindingEventProxy>();
+            }
+
+            return new ToggleBinder<S, SProperty>(target, proxy.SetValue, binder.Binding);
+        }
+        
+        public static SliderBinder<S, SProperty> To<S, SProperty>(this BindingSource<S, SProperty> binder,
+            Slider target)
+        {
+            if (target.gameObject.TryGetComponent<SliderBindingEventProxy>(out var proxy))
+            {
+            }
+            else
+            {
+                proxy = target.gameObject.AddComponent<SliderBindingEventProxy>();
+            }
+
+            return new SliderBinder<S, SProperty>(target, proxy.SetValue, binder.Binding);
         }
     }
 }

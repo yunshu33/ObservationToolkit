@@ -16,9 +16,9 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 
         public override void Invoke(S source, SProperty property)
         {
-            if (_converter != null)
+            if (_convert != null)
             {
-                Handler?.Invoke(_converter.SourceConvertTarget(property));
+                Handler?.Invoke(_convert.SourceConvertTarget(property));
             }
             else
             {
@@ -29,7 +29,7 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 
         public override void Unbind()
         {
-            _binding.Unbind(this);
+            _binding.Unbind(HashCode);
         }
 
         public override void OnUnbind()
@@ -41,7 +41,7 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
         {
             if (!isBinding)
             {
-                _converter = convert;
+                _convert = convert;
                 OneWay();
             }
         }

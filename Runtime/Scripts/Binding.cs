@@ -12,7 +12,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
     public class Binding<S, SProperty> : Binding
     {
         private readonly string _propertyName;
-        
+
         public string PropertyName => _propertyName;
 
         private IConvert<SProperty, object> _converter;
@@ -53,23 +53,21 @@ namespace LJVoyage.ObservationToolkit.Runtime
             _binders.Add(binder.HashCode, binder);
         }
 
-        public void Unbind(Binder<S, SProperty> binder)
+        public void Unbind(string hashcode)
         {
-            var hashcode = binder.HashCode;
-
-            if (_binders.TryGetValue(binder.HashCode, out Binder<S, SProperty> target))
+            if (_binders.TryGetValue(hashcode, out Binder<S, SProperty> target))
             {
                 var count = _binders.Count;
 
                 _binders.Remove(hashcode);
-                
+
                 target.OnUnbind();
 
                 UnityEngine.Debug.Log($"解绑成功 {count}-> {_binders.Count}");
             }
             else
             {
-                throw new Exception($"未找到绑定 ");
+                throw new Exception($"未找到绑定 {hashcode}");
             }
         }
 

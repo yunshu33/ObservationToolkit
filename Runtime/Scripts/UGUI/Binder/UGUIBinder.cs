@@ -4,15 +4,14 @@ using UnityEngine.EventSystems;
 
 namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 {
-    public abstract class UGUIBinder<S, SProperty, U, UProperty> : Binder<S, SProperty, UProperty>
-        where U : UIBehaviour 
+    public abstract class UGUIBinder<S, SProperty, U, UProperty> : Binder<S, SProperty, UProperty>,
+        IOneWayBinder<S, SProperty, UProperty>
+        where U : UIBehaviour
     {
         protected readonly U _target;
-
-
+        
         protected bool isBinding = false;
 
-        protected IConvert<SProperty, UProperty> _converter;
 
         private string _hashCode;
 
@@ -24,5 +23,12 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 
 
         public override string HashCode => _target.GetHashCode().ToString();
+
+
+        public abstract void OneWay();
+
+        public abstract void OneWay(IConvert<SProperty, UProperty> convert);
+        
+        public abstract void Unbind();
     }
 }

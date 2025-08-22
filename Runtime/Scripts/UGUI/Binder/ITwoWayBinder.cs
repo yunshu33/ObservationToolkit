@@ -9,9 +9,11 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
     public interface ITwoWayBinder<T, TProperty, U,  UProperty> where U : UIBehaviour
     {
 
-
         void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression);
         
         void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression,IConvert<TProperty, UProperty> convert);
+        
+        
+        void Unbind(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression);
     }
 }

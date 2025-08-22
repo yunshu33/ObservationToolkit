@@ -13,16 +13,14 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
         public InputFieldUGUIBinder(InputField target, Action<string> handler, Binding<S, SProperty> binding) : base(
             target, handler, binding)
         {
-            
         }
 
-        
-        
+
         public override void Invoke(S source, SProperty property)
         {
-            if (_converter != null)
+            if (_convert != null)
             {
-                Handler?.Invoke(_converter.SourceConvertTarget(property));
+                Handler?.Invoke(_convert.SourceConvertTarget(property));
             }
             else
             {
@@ -30,23 +28,18 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             }
         }
 
-        public override void Unbind()
-        {
-            throw new NotImplementedException();
-        }
+        // public override void Unbind()
+        // {
+        //     throw new NotImplementedException();
+        // }
 
 
-        public override void Unbind(Expression<Func<InputField, UnityEvent<string>>> propertyExpression)
-        {
-            _binding.Unbind(this);
-        }
+      
+
         
-        public override void OnUnbind()
-        {
-            Debug.Log($"UGUI 事件移除前:{_uiEvent.GetPersistentEventCount()}");
-            _uiEvent.RemoveListener(_uiAction);
-            Debug.Log($"UGUI 事件移除后:{_uiEvent.GetPersistentEventCount()}");
-        }
+        
+
+       
 
         protected override SProperty TargetConvertSource(string value)
         {
@@ -60,42 +53,11 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 
         public override void OneWay(IConvert<SProperty, string> convert)
         {
-            _converter = convert;
+            _convert = convert;
             OneWay();
         }
 
-
-        public override void TwoWay(Expression<Func<InputField, UnityEvent<string>>> propertyExpression)
-        {
-            // 编译表达式并获取委托
-            Func<InputField, UnityEvent<string>> propertyAccessor = propertyExpression.Compile();
-
-            // 调用委托获取 UnityEvent<string>
-            _uiEvent = propertyAccessor(_target);
-
-            _uiAction = CreateSetter();
-
-            _uiEvent.AddListener(_uiAction);
-
-            OneWay();
-
-            // var eventField = propertyExpression.Body as MemberExpression;
-            // var eventFieldName = eventField.Member.Name;
-            // var eventFieldType = eventField.Member.DeclaringType;
-            // var eventFieldAdd = eventFieldType.GetMethod("AddListener");
-            // var eventFieldRemove = eventFieldType.GetMethod("RemoveListener");
-            // var eventFieldRaise = eventFieldType.GetMethod("RaiseEvent");
-            // var eventFieldAddAction = eventFieldAdd.MakeGenericMethod(typeof(string));
-            // var eventFieldRemoveAction = eventFieldRemove.MakeGenericMethod(typeof(string));
-            // var eventFieldRaiseAction = eventFieldRaise.MakeGenericMethod(typeof(string));
-        }
-
-        public override void TwoWay(Expression<Func<InputField, UnityEvent<string>>> propertyExpression,
-            IConvert<SProperty, string> convert)
-        {
-            _converter = convert;
-            TwoWay(propertyExpression);
-        }
+       
     }
 
 
