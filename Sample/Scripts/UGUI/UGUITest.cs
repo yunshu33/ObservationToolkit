@@ -37,6 +37,8 @@ namespace LJVoyage.ObservationToolkit.Sample.UGUI
         [ContextMenu("AddListener")]
         private void AddListener()
         {
+           
+            
             model.For(m => m.Value).To(text).OneWay();
 
             model.For(m => m.Value).To(inputField).TwoWay(input => input.onValueChanged);

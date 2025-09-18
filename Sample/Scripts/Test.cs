@@ -51,6 +51,8 @@ namespace LJVoyage.ObservationToolkit.Sample
         [ContextMenu("AddListener")]
         private void AddListener()
         {
+     
+            
             model.For(m => m.Value).To(TestEvent2).OneWay();
             // model.For(m => m.Value, new Convert1()).To(TestEvent2).OneWay();
         }
@@ -103,13 +105,12 @@ namespace LJVoyage.ObservationToolkit.Sample
     public class TestModel2 : IObservable
     {
         BindingHandler IObservable.BindingHandler { get; set; }
-
+        
         public float Value
         {
             get => _value;
             set { this.SetField(ref _value, value); }
         }
-
 
         [SerializeField] private bool ison;
 
