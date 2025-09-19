@@ -1,7 +1,7 @@
 {
     "name": "Unity.ObservationToolkit.CodeGen",
     "rootNamespace": "",
-    "references": [],
+    "references": ["GUID:40311e219f18080498d40f81bef463e0"],
     "includePlatforms": [
         "Editor"
     ],

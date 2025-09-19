@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using LJVoyage.ObservationToolkit.Editor.CodeGen;
+using LJVoyage.ObservationToolkit.Runtime;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -16,8 +18,27 @@ namespace LJVoyage.ObservationToolkit.Editor
     public class ObservationWeaver : ILPostProcessor
     {
         private const string BindingAssemblyName = "LJVoyage.ObservationToolkit.Runtime";
+        
 
-        public override ILPostProcessor GetInstance() => this;
+        string runtimeDllPath = Path.Combine(
+            Environment.CurrentDirectory,
+            "Library/ScriptAssemblies/LJVoyage.ObservationToolkit.Runtime.dll");
+        
+        Assembly _runtimeAssembly;
+
+        public override ILPostProcessor GetInstance()
+        {
+            if (_runtimeAssembly == null)
+            {
+                string runtimeDllPath = Path.Combine(
+                    Environment.CurrentDirectory,
+                    "Library/ScriptAssemblies/LJVoyage.ObservationToolkit.Runtime.dll");
+
+                _runtimeAssembly = Assembly.LoadFrom(runtimeDllPath);
+            }
+            
+            return this;
+        }
 
         public override bool WillProcess(ICompiledAssembly compiledAssembly)
         {
@@ -48,6 +69,7 @@ namespace LJVoyage.ObservationToolkit.Editor
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
         {
+            
             var module = ModuleDefinition.ReadModule(new MemoryStream(compiledAssembly.InMemoryAssembly.PeData));
 
             var setFieldRef = FindSetFieldInOtherAssembly(module);
@@ -57,12 +79,27 @@ namespace LJVoyage.ObservationToolkit.Editor
             foreach (var type in module.GetAllTypes())
             {
                 if (!type.HasProperties) continue;
+                
+                if (type.CustomAttributes.All(x => x.AttributeType.Name != nameof(ObservationAttribute)))
+                    continue;
 
                 foreach (var prop in type.Properties)
                 {
+                    
+                    if (prop.PropertyType.FullName == typeof(BindingHandler).FullName)
+                    {
+                        continue;
+                    }
+                    
                     if (prop.SetMethod == null || !prop.SetMethod.HasBody) continue;
 
+                    if (prop.CustomAttributes.Any(x => x.AttributeType.Name == nameof(IgnoreObservationAttribute)))
+                        continue;
+                    
+                    
+
                     var backingField = prop.BackingField();
+                    
                     if (backingField == null) continue;
 
                     var setMethod = prop.SetMethod;

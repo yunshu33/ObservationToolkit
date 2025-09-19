@@ -16,15 +16,6 @@ namespace LJVoyage.ObservationToolkit.Runtime
     /// 标记需要忽略观察的属性或类
     /// </summary>
     [AttributeUsage(AttributeTargets.Property|AttributeTargets.Class)]
-    public class NoObservationAttribute : Attribute
-    {
-        
-    }
-    
-    /// <summary>
-    /// 标记需要忽略观察的属性或类
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property|AttributeTargets.Class)]
     public class IgnoreObservationAttribute : Attribute
     {
         
