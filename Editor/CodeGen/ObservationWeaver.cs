@@ -18,12 +18,12 @@ namespace LJVoyage.ObservationToolkit.Editor
     public class ObservationWeaver : ILPostProcessor
     {
         private const string BindingAssemblyName = "LJVoyage.ObservationToolkit.Runtime";
-        
+
 
         string runtimeDllPath = Path.Combine(
             Environment.CurrentDirectory,
             "Library/ScriptAssemblies/LJVoyage.ObservationToolkit.Runtime.dll");
-        
+
         Assembly _runtimeAssembly;
 
         public override ILPostProcessor GetInstance()
@@ -36,7 +36,7 @@ namespace LJVoyage.ObservationToolkit.Editor
 
                 _runtimeAssembly = Assembly.LoadFrom(runtimeDllPath);
             }
-            
+
             return this;
         }
 
@@ -69,37 +69,27 @@ namespace LJVoyage.ObservationToolkit.Editor
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
         {
-            
             var module = ModuleDefinition.ReadModule(new MemoryStream(compiledAssembly.InMemoryAssembly.PeData));
 
             var setFieldRef = FindSetFieldInOtherAssembly(module);
+
             if (setFieldRef == null)
                 return new ILPostProcessResult(compiledAssembly.InMemoryAssembly);
 
             foreach (var type in module.GetAllTypes())
             {
                 if (!type.HasProperties) continue;
-                
+
                 if (type.CustomAttributes.All(x => x.AttributeType.Name != nameof(ObservationAttribute)))
                     continue;
 
                 foreach (var prop in type.Properties)
                 {
-                    
-                    if (prop.PropertyType.FullName == typeof(BindingHandler).FullName)
-                    {
+                    if (ShouldIgnoreObservation(prop))
                         continue;
-                    }
-                    
-                    if (prop.SetMethod == null || !prop.SetMethod.HasBody) continue;
-
-                    if (prop.CustomAttributes.Any(x => x.AttributeType.Name == nameof(IgnoreObservationAttribute)))
-                        continue;
-                    
-                    
 
                     var backingField = prop.BackingField();
-                    
+
                     if (backingField == null) continue;
 
                     var setMethod = prop.SetMethod;
@@ -107,7 +97,6 @@ namespace LJVoyage.ObservationToolkit.Editor
                     setMethod.Body.SimplifyMacros();
 
                     var il = setMethod.Body.GetILProcessor();
-
 
                     // 找到所有 stfld 指令对应 backingField
                     var instructions = setMethod.Body.Instructions.ToList();
@@ -118,33 +107,34 @@ namespace LJVoyage.ObservationToolkit.Editor
                         .ToList();
                     if (stfldIndices.Count == 0) continue;
 
-                    VariableDefinition lastTmp = new VariableDefinition(backingField.FieldType);
-
                     // 将每个 stfld 替换为 stloc tmpVar
                     foreach (var idx in stfldIndices)
                     {
                         // 添加临时变量
-                        lastTmp = new VariableDefinition(backingField.FieldType);
-                        setMethod.Body.Variables.Add(lastTmp);
+                        VariableDefinition tmpVar = new VariableDefinition(backingField.FieldType);
+                        setMethod.Body.Variables.Add(tmpVar);
                         setMethod.Body.InitLocals = true;
 
-                        var storeTmp = il.Create(OpCodes.Stloc, lastTmp);
+                        var storeTmp = il.Create(OpCodes.Stloc, tmpVar);
                         il.Replace(instructions[idx], storeTmp);
+
+                        var genericSetField = new GenericInstanceMethod(setFieldRef);
+                        genericSetField.GenericArguments.Add(backingField.FieldType);
+
+
+                        il.InsertAfter(storeTmp, il.Create(OpCodes.Ldarg_0)); // this -> binding
+                        il.InsertAfter(storeTmp.Next, il.Create(OpCodes.Ldflda, backingField));
+                        // ref _field
+                        il.InsertAfter(storeTmp.Next.Next, il.Create(OpCodes.Ldloc, tmpVar));
+                        // tmpVar
+                        il.InsertAfter(storeTmp.Next.Next.Next, il.Create(OpCodes.Ldstr, prop.Name));
+                        // 属性名
+                        il.InsertAfter(storeTmp.Next.Next.Next.Next, il.Create(OpCodes.Call, genericSetField));
+                        il.InsertAfter(storeTmp.Next.Next.Next.Next.Next, il.Create(OpCodes.Pop)); // 丢弃 bool
                     }
 
                     // 方法尾调用 SetField<T>
-                    var lastInstr = setMethod.Body.Instructions.Last(i => i.OpCode == OpCodes.Ret);
-                    var genericSetField = new GenericInstanceMethod(setFieldRef);
-                    genericSetField.GenericArguments.Add(backingField.FieldType);
-
-
-                    il.InsertBefore(lastInstr, il.Create(OpCodes.Ldarg_0)); // this -> binding
-                    il.InsertBefore(lastInstr, il.Create(OpCodes.Ldflda, backingField)); // ref _field
-
-                    il.InsertBefore(lastInstr, il.Create(OpCodes.Ldloc, lastTmp)); // 临时变量
-                    il.InsertBefore(lastInstr, il.Create(OpCodes.Ldstr, prop.Name)); // 属性名
-                    il.InsertBefore(lastInstr, il.Create(OpCodes.Call, genericSetField));
-                    il.InsertBefore(lastInstr, il.Create(OpCodes.Pop)); // 丢弃 bool
+                    // var lastInstr = setMethod.Body.Instructions.Last(i => i.OpCode == OpCodes.Ret);
 
 
                     setMethod.Body.Optimize();
@@ -157,6 +147,42 @@ namespace LJVoyage.ObservationToolkit.Editor
                 return new ILPostProcessResult(new InMemoryAssembly(ms.ToArray(),
                     compiledAssembly.InMemoryAssembly.PdbData));
             }
+        }
+
+        private static bool ShouldIgnoreObservation(PropertyDefinition prop)
+        {
+            if (prop.PropertyType.FullName == typeof(BindingHandler).FullName)
+                return true;
+
+            // 先检查子类自身属性
+            if (prop.CustomAttributes.Any(a => a.AttributeType.Name == nameof(IgnoreObservationAttribute)))
+                return true;
+
+            if (prop.CustomAttributes.Any(a => a.AttributeType.Name == nameof(ObservationAttribute)))
+                return false;
+
+            // 如果子类没标记，再检查父类链
+            var type = prop.DeclaringType.BaseType?.Resolve();
+            var propName = prop.Name;
+
+            while (type != null)
+            {
+                var baseProp = type.Properties.FirstOrDefault(p => p.Name == propName);
+                if (baseProp != null)
+                {
+                    if (baseProp.CustomAttributes.Any(a => a.AttributeType.Name == nameof(IgnoreObservationAttribute)))
+                        return true;
+                }
+
+                type = type.BaseType?.Resolve();
+            }
+            // 3. 接口  暂时不支持
+            // foreach (var iface in prop.DeclaringType.Interfaces)
+            // {
+            //     
+            // }
+
+            return false;
         }
 
         private static MethodReference FindSetFieldInOtherAssembly(ModuleDefinition module)
@@ -176,6 +202,7 @@ namespace LJVoyage.ObservationToolkit.Editor
             return methodDef == null ? null : module.ImportReference(methodDef);
         }
     }
+
 
     public static class CecilExtensions
     {

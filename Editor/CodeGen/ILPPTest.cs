@@ -29,7 +29,7 @@ namespace LJVoyage.ObservationToolkit.Editor.CodeGen
             if (result != null)
             {
                 Debug.Log("ILPostProcessor ran successfully.");
-                File.WriteAllBytes("Assets/Assembly-CSharp_Post.dll", result.InMemoryAssembly.PeData);
+              //  File.WriteAllBytes("Assets/Assembly-CSharp_Post.dll", result.InMemoryAssembly.PeData);
             }
             else
             {

@@ -10,7 +10,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
         /// <summary>
         /// 绑定处理程序
         /// </summary>
-        [IgnoreObservation]
+        [IgnoreObservation] 
         public BindingHandler BindingHandler { get; set; }
 
         public void OnPropertyChanged<V>(V value, [CallerMemberName] string propertyName = null)
