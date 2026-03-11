@@ -1,12 +1,12 @@
-﻿using LJVoyage.ObservationToolkit.Runtime.Converter;
+using Voyage.ObservationToolkit.Runtime.Converter;
 using UnityEngine.EventSystems;
 
-namespace LJVoyage.ObservationToolkit.Runtime.UGUI
+namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
     public interface IOneWayBinder<T, TProperty, U, UProperty> where U : UIBehaviour
     {
-        void OneWay(IConvert<TProperty, UProperty> convert);
+        IDisposableBinding OneWay(IConvert<TProperty, UProperty> convert);
 
-        void OneWay();
+        IDisposableBinding OneWay();
     }
 }

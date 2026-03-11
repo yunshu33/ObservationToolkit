@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine.EventSystems;
 
-namespace LJVoyage.ObservationToolkit.Runtime.UGUI
+namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
     public abstract class UIBindingEventProxy<T,TProperty> : UIBehaviour where T : UIBehaviour
     {
@@ -15,6 +15,10 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
                 if (_target == null)
                 {
                     _target = GetComponent<T>();
+                    if (_target == null)
+                    {
+                        UnityEngine.Debug.LogError($"{gameObject.name} 上找不到组件 {typeof(T).Name}");
+                    }
                 }
 
                 return _target;

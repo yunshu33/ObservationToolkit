@@ -1,11 +1,12 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
-using LJVoyage.ObservationToolkit.Runtime;
-using LJVoyage.ObservationToolkit.Runtime.Converter;
-using LJVoyage.ObservationToolkit.Runtime.UGUI;
+using Voyage.ObservationToolkit.Runtime;
+using Voyage.ObservationToolkit.Runtime.Command;
 
-namespace LJVoyage.ObservationToolkit.Sample
+using Voyage.ObservationToolkit.Runtime.ViewModel;
+
+namespace Voyage.ObservationToolkit.Sample
 {
     public class Test : MonoBehaviour
     {
@@ -20,17 +21,11 @@ namespace LJVoyage.ObservationToolkit.Sample
 
         private void Awake()
         {
-            // 转换代理 问题
-
-            //OneWay 和Two way 要拆分为接口  部分 gui 不支持双向  比如 Text 
-
-            //  way 可传入  转换代理 
-
-            model.For(m => m.Value).To(TestEvent).OneWay();
-
-
-            //
-            // model.For(m => m.Value).To(inputField).OneWay();
+            // 绑定并自动管理生命周期（随当前 GameObject 销毁而解绑）
+            model.For(m => m.Value)
+                .To(TestEvent)
+                .OneWay()
+                .AddTo(this); 
 
             button.onClick.AddListener(Add);
         }
@@ -51,8 +46,6 @@ namespace LJVoyage.ObservationToolkit.Sample
         [ContextMenu("AddListener")]
         private void AddListener()
         {
-     
-            
             model.For(m => m.Value).To(TestEvent2).OneWay();
             // model.For(m => m.Value, new Convert1()).To(TestEvent2).OneWay();
         }
@@ -92,6 +85,7 @@ namespace LJVoyage.ObservationToolkit.Sample
         [SerializeField] private int _value;
 
         public int count;
+
         [SerializeField] private bool _ttt;
 
         public bool TTT
@@ -102,25 +96,58 @@ namespace LJVoyage.ObservationToolkit.Sample
     }
 
     [Serializable]
-    public class TestModel2 : IObservable
+    public class TestData
     {
-        BindingHandler IObservable.BindingHandler { get; set; }
-        
+        public float value;
+        public bool isOn;
+        public int index;
+        public Sprite icon;
+        public Texture texture;
+    }
+    
+    [Serializable]
+    public class TestViewModel : ViewModel<TestData>
+    {
+
         public float Value
         {
-            get => _value;
-            set { this.SetField(ref _value, value); }
+            get => Data.value;
+            set
+            {
+                if (this.SetField(ref Data.value, value))
+                {
+                    _addCommand?.RaiseCanExecuteChanged();
+                }
+            }
         }
 
-        [SerializeField] private bool ison;
 
+        [Observation]
         public bool IsOn
         {
-            get => ison;
-            set { this.SetField(ref ison, value); }
+           get;set;
         }
 
-        [SerializeField] private float _value;
+        public int Index
+        {
+            get => Data.index;
+            set => this.SetField(ref Data.index, value);
+        }
+
+        public Sprite Icon
+        {
+            get => Data.icon;
+            set => this.SetField(ref Data.icon, value);
+        }
+
+        public Texture Texture
+        {
+            get => Data.texture;
+            set => this.SetField(ref Data.texture, value);
+        }
+
+        private ICommand _addCommand;
+        public ICommand AddCommand => _addCommand ??= new RelayCommand(() => Value++, () => Value < 100);
     }
 
 

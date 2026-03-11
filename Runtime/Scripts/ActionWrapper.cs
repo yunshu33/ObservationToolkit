@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace LJVoyage.ObservationToolkit.Runtime
+namespace Voyage.ObservationToolkit.Runtime
 {
     public class ActionWrapper<T, TProperty> : ActionWrapper, IDisposable
     {

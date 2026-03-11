@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-using LJVoyage.ObservationToolkit.Runtime.Converter;
+using Voyage.ObservationToolkit.Runtime.Converter;
 
 
-namespace LJVoyage.ObservationToolkit.Runtime
+namespace Voyage.ObservationToolkit.Runtime
 {
     public static class BindingExtensions
     {

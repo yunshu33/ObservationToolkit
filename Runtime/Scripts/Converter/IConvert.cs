@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace LJVoyage.ObservationToolkit.Runtime.Converter
+namespace Voyage.ObservationToolkit.Runtime.Converter
 {
     public interface IConvert<Source, Target>
     {

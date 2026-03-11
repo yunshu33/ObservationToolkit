@@ -1,4 +1,4 @@
-﻿namespace LJVoyage.ObservationToolkit.Runtime.Converter
+﻿namespace Voyage.ObservationToolkit.Runtime.Converter
 {
     public class IntConvert : IConvert<int, string>, IConvert<int, float>, IConvert<int, double>
     {

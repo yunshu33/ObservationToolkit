@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LJVoyage.ObservationToolkit.Runtime
+namespace Voyage.ObservationToolkit.Runtime
 {
     
     /// <summary>

@@ -3,7 +3,7 @@ using Unity.CompilationPipeline.Common.ILPostProcessing;
 using UnityEditor;
 using UnityEngine;
 
-namespace LJVoyage.ObservationToolkit.Editor.CodeGen
+namespace Voyage.ObservationToolkit.Editor
 {
     public class ILPPTest
     {
@@ -29,7 +29,7 @@ namespace LJVoyage.ObservationToolkit.Editor.CodeGen
             if (result != null)
             {
                 Debug.Log("ILPostProcessor ran successfully.");
-              //  File.WriteAllBytes("Assets/Assembly-CSharp_Post.dll", result.InMemoryAssembly.PeData);
+              
             }
             else
             {

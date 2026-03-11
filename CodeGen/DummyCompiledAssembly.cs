@@ -1,6 +1,6 @@
 ﻿using Unity.CompilationPipeline.Common.ILPostProcessing;
 
-namespace LJVoyage.ObservationToolkit.Editor.CodeGen
+namespace Voyage.ObservationToolkit.Editor
 {
     class DummyCompiledAssembly : ICompiledAssembly
     {

@@ -1,13 +1,13 @@
-﻿using LJVoyage.ObservationToolkit.Runtime.Converter;
+using Voyage.ObservationToolkit.Runtime.Converter;
 
-namespace LJVoyage.ObservationToolkit.Runtime
+namespace Voyage.ObservationToolkit.Runtime
 {
     public interface IOneWayBinder<S, SProperty, TProperty>
     {
-        void OneWay();
+        IDisposableBinding OneWay();
 
 
-        void OneWay(IConvert<SProperty, TProperty> convert);
+        IDisposableBinding OneWay(IConvert<SProperty, TProperty> convert);
         
         
         void Unbind();

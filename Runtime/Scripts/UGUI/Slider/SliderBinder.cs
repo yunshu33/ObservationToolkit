@@ -1,7 +1,8 @@
-﻿using System;
+using System;
+using Voyage.ObservationToolkit.Runtime;
 using UnityEngine.UI;
 
-namespace LJVoyage.ObservationToolkit.Runtime.UGUI
+namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
     public class SliderBinder<S, SProperty> : TwoWayUGUIBinderBase<S, SProperty, Slider, float>
     {

@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace LJVoyage.ObservationToolkit.Runtime
+namespace Voyage.ObservationToolkit.Runtime
 {
     /// <summary>
     /// 绑定句柄
@@ -44,7 +44,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
 
         public virtual void OnPropertyChanged<V>(V value, [CallerMemberName] string propertyName = null)
         {
-            if (propertyName == null)
+            if (string.IsNullOrEmpty(propertyName))
             {
                 throw new ArgumentNullException(nameof(propertyName));
             }
@@ -54,5 +54,6 @@ namespace LJVoyage.ObservationToolkit.Runtime
                 binding.Invoke(value);
             }
         }
+
     }
 }

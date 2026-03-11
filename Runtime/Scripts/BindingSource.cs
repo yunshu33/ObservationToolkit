@@ -1,7 +1,7 @@
 ﻿using System;
-using LJVoyage.ObservationToolkit.Runtime.Converter;
+using Voyage.ObservationToolkit.Runtime.Converter;
 
-namespace LJVoyage.ObservationToolkit.Runtime
+namespace Voyage.ObservationToolkit.Runtime
 {
     public class BindingSource<S, SProperty> 
     {

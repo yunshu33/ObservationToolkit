@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
-using LJVoyage.ObservationToolkit.Runtime.Converter;
+using Voyage.ObservationToolkit.Runtime.Converter;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-namespace LJVoyage.ObservationToolkit.Runtime.UGUI
+namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
     public interface ITwoWayBinder<T, TProperty, U,  UProperty> where U : UIBehaviour
     {
 
-        void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression);
+        IDisposableBinding TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression);
         
-        void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression,IConvert<TProperty, UProperty> convert);
+        IDisposableBinding TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression,IConvert<TProperty, UProperty> convert);
         
         
         void Unbind(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression);

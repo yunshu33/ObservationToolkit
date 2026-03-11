@@ -1,8 +1,9 @@
-﻿using System;
-using LJVoyage.ObservationToolkit.Runtime.Converter;
+using System;
+using Voyage.ObservationToolkit.Runtime;
+using Voyage.ObservationToolkit.Runtime.Converter;
 using UnityEngine.UI;
 
-namespace LJVoyage.ObservationToolkit.Runtime.UGUI
+namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
     public class ToggleBinder<S, SProperty> : TwoWayUGUIBinderBase<S, SProperty, Toggle, bool>
     {

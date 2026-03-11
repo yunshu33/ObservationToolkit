@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using LJVoyage.ObservationToolkit.Runtime.Converter;
+using Voyage.ObservationToolkit.Runtime.Converter;
 
-namespace LJVoyage.ObservationToolkit.Runtime
+namespace Voyage.ObservationToolkit.Runtime
 {
     /// <summary>
     /// 使用函数 的has code 作为 唯一标识  绑定  解除绑定
     /// </summary>
     /// <typeparam name="S"></typeparam>
     /// <typeparam name="SProperty"></typeparam>
-    public class Binding<S, SProperty> : Binding
+    public class Binding<S, SProperty> : Binding, IBinding<SProperty>
     {
         private readonly string _propertyName;
 
@@ -38,14 +38,14 @@ namespace LJVoyage.ObservationToolkit.Runtime
             }
         }
 
-        private readonly Dictionary<string, Binder<S, SProperty>> _binders;
+        private readonly Dictionary<int, Binder<S, SProperty>> _binders;
 
         public Binding(string propertyName, WeakReference<object> source)
         {
             _propertyName = propertyName;
             _source = source;
 
-            _binders = new Dictionary<string, Binder<S, SProperty>>();
+            _binders = new Dictionary<int, Binder<S, SProperty>>();
         }
 
         public void Bind(Binder<S, SProperty> binder)
@@ -53,7 +53,7 @@ namespace LJVoyage.ObservationToolkit.Runtime
             _binders.Add(binder.HashCode, binder);
         }
 
-        public void Unbind(string hashcode)
+        public void Unbind(int hashcode)
         {
             if (_binders.TryGetValue(hashcode, out Binder<S, SProperty> target))
             {
@@ -68,6 +68,33 @@ namespace LJVoyage.ObservationToolkit.Runtime
             else
             {
                 throw new Exception($"未找到绑定 {hashcode}");
+            }
+        }
+
+        public void Invoke(SProperty value)
+        {
+            if (!_source.TryGetTarget(out var obj))
+            {
+                throw new Exception("源对象已被释放");
+            }
+
+            S source = (S)obj;
+
+            foreach (var binder in _binders.Values)
+            {
+                binder.Invoke(source, value);
+            }
+        }
+
+        public override void Invoke<V>(V value)
+        {
+            if (value is SProperty typedValue)
+            {
+                Invoke(typedValue);
+            }
+            else
+            {
+                Invoke((object)value);
             }
         }
 
@@ -102,5 +129,12 @@ namespace LJVoyage.ObservationToolkit.Runtime
     public abstract class Binding
     {
         public abstract void Invoke(object value);
+
+        public abstract void Invoke<V>(V value);
+    }
+
+    public interface IBinding<in V>
+    {
+        void Invoke(V value);
     }
 }

@@ -1,12 +1,14 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using LJVoyage.ObservationToolkit.Runtime.Converter;
+using Voyage.ObservationToolkit.Runtime;
+using Voyage.ObservationToolkit.Runtime.Converter;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace LJVoyage.ObservationToolkit.Runtime.UGUI
+namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
     public class InputFieldUGUIBinder<S, SProperty> : TwoWayUGUIBinderBase<S, SProperty, InputField, string>
     {
@@ -18,28 +20,55 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 
         public override void Invoke(S source, SProperty property)
         {
-            if (_convert != null)
+            if (_hasLastSValue && EqualityComparer<SProperty>.Default.Equals(_lastSValue, property))
             {
-                Handler?.Invoke(_convert.SourceConvertTarget(property));
+                // UnityEngine.Debug.Log($"[InputFieldBinder] 触发重复值过滤: {property}");
+                return;
             }
-            else
+
+            // 防覆盖检查：如果 InputField 的值（解析后）与新值相等，就不更新 UI，防止打断用户输入（如 "1." -> "1"）
+            if (IsInputContentEqual(property))
             {
-                Handler?.Invoke(property.ToString());
+                _lastSValue = property;
+                _hasLastSValue = true;
+                return;
+            }
+
+            _lastSValue = property;
+            _hasLastSValue = true;
+
+            try
+            {
+                _isUpdatingUI = true;
+
+                if (_convert != null)
+                {
+                    Handler?.Invoke(_convert.SourceConvertTarget(property));
+                }
+                else
+                {
+                    Handler?.Invoke(Convert.ToString(property, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+            finally
+            {
+                _isUpdatingUI = false;
             }
         }
 
-        // public override void Unbind()
-        // {
-        //     throw new NotImplementedException();
-        // }
-
-
-      
-
-        
-        
-
-       
+        private bool IsInputContentEqual(SProperty newValue)
+        {
+            try
+            {
+                // 使用基类的 TargetConvertSource 进行解析（包含 CultureInfo 处理）
+                var currentVal = TargetConvertSource(_target.text);
+                return EqualityComparer<SProperty>.Default.Equals(currentVal, newValue);
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         protected override SProperty TargetConvertSource(string value)
         {
@@ -51,10 +80,9 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             return base.TargetConvertSource(value);
         }
 
-        public override void OneWay(IConvert<SProperty, string> convert)
+        public override IDisposableBinding OneWay(IConvert<SProperty, string> convert)
         {
-            _convert = convert;
-            OneWay();
+            return base.OneWay(convert);
         }
 
        

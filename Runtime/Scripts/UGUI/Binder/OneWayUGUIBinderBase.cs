@@ -1,8 +1,9 @@
-﻿using System;
-using LJVoyage.ObservationToolkit.Runtime.Converter;
+using System;
+using Voyage.ObservationToolkit.Runtime;
+using Voyage.ObservationToolkit.Runtime.Converter;
 using UnityEngine.EventSystems;
 
-namespace LJVoyage.ObservationToolkit.Runtime.UGUI
+namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
     public abstract class OneWayUGUIBinderBase<S, SProperty, U, UProperty> : UGUIBinder<S, SProperty, U, UProperty> where U : UIBehaviour
     {
@@ -12,18 +13,42 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             
         }
 
-        public override void OneWay()
+        public override IDisposableBinding OneWay()
         {
             if (!isBinding)
             {
                 _binding.Bind(this);
                 isBinding = true;
             }
+            return this;
         }
         
-        public override void OneWay(IConvert<SProperty, UProperty> convert)
+        public override IDisposableBinding OneWay(IConvert<SProperty, UProperty> convert)
         {
            _convert = convert;
+           return OneWay();
+        }
+
+        public override void Unbind()
+        {
+            if (isBinding)
+            {
+                try
+                {
+                    _binding.Unbind(this.HashCode);
+                    isBinding = false;
+                    NotifyDisposed();
+                }
+                catch (Exception)
+                {
+                    // ignore
+                }
+            }
+        }
+        
+        public override void OnUnbind()
+        {
+            isBinding = false;
         }
     }
 }

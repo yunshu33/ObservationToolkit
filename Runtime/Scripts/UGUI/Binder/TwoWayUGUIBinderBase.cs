@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
-using LJVoyage.ObservationToolkit.Runtime.Converter;
+using Voyage.ObservationToolkit.Runtime;
+using Voyage.ObservationToolkit.Runtime.Converter;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-namespace LJVoyage.ObservationToolkit.Runtime.UGUI
+namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
     public abstract class TwoWayUGUIBinderBase<S, SProperty, U, UProperty> :
         OneWayUGUIBinderBase<S, SProperty, U, UProperty>,
@@ -19,13 +20,31 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
 
         protected TypeConverter _sourcePropertyConverter;
 
-        public override string HashCode => _hash + _uiEventName;
+        public override int HashCode => _hash ^ _uiEventHash;
 
-        protected string _uiEventName;
+        protected int _uiEventHash;
+        
+        /// <summary>
+        /// 标记是否正在从 Model 更新 UI，用于防止死循环 (Model -> UI -> Event -> Model)
+        /// </summary>
+        protected bool _isUpdatingUI;
 
         protected TwoWayUGUIBinderBase(U target, Action<UProperty> handler, Binding<S, SProperty> binding) : base(
             target, handler, binding)
         {
+        }
+        
+        public override void Invoke(S source, SProperty property)
+        {
+            try
+            {
+                _isUpdatingUI = true;
+                base.Invoke(source, property);
+            }
+            finally
+            {
+                _isUpdatingUI = false;
+            }
         }
 
 
@@ -33,23 +52,35 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
         {
             if (propertyExpression.Body is MemberExpression memberExp)
             {
-                _binding.Unbind(_hash + "+" + memberExp.Member.Name);
+                int targetHash = _hash ^ memberExp.Member.Name.GetHashCode();
+                if (targetHash == HashCode)
+                {
+                    // 如果匹配当前绑定，走完整的解绑流程
+                    Unbind();
+                }
+                else
+                {
+                    // 否则只解除底层绑定（可能是部分解绑？）
+                    _binding.Unbind(targetHash);
+                }
             }
         }
 
-        public override void Unbind()
-        {
-            _binding.Unbind(HashCode);
-        }
+        // 移除 override Unbind()，使用基类 OneWayUGUIBinderBase 的实现
 
         public override void OnUnbind()
         {
-            if (_uiAction != null)
+            // 确保先解绑 UI 事件
+            if (_uiEvent != null && _uiAction != null)
             {
-                Debug.Log($"UGUI 事件移除前:{GetRuntimeListenerCount(_uiEvent)}");
+                // Debug.Log($"UGUI 事件移除前:{GetRuntimeListenerCount(_uiEvent)}");
                 _uiEvent.RemoveListener(_uiAction);
-                Debug.Log($"UGUI 事件移除后:{GetRuntimeListenerCount(_uiEvent)}");
+                // Debug.Log($"UGUI 事件移除后:{GetRuntimeListenerCount(_uiEvent)}");
+                _uiEvent = null;
+                _uiAction = null;
             }
+            
+            base.OnUnbind();
         }
 
 
@@ -86,10 +117,17 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             var instance = Expression.Constant(source);
 
             // 调用 this.TargetConvertSource(value)，返回 SProperty
-            var convertMethod = GetType().GetMethod("TargetConvertSource",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-
-            var convertedValue = Expression.Call(Expression.Constant(this), convertMethod, valueParam);
+            Expression convertedValue;
+            if (_isTypeEqual && _convert == null)
+            {
+                convertedValue = Expression.Convert(valueParam, typeof(SProperty));
+            }
+            else
+            {
+                var convertMethod = GetType().GetMethod("TargetConvertSource",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                convertedValue = Expression.Call(Expression.Constant(this), convertMethod, valueParam);
+            }
 
             // source.Property = TargetConvertSource(value)
             var body = Expression.Assign(Expression.Property(instance, property), convertedValue);
@@ -112,49 +150,58 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
                 return _convert.TargetConvertSource(value);
             }
 
-            if (value == null)
-                return default;
-
             if (_isTypeEqual)
             {
                 return (SProperty)(object)value;
             }
 
+            if (value == null)
+            {
+                 // 处理值类型空值
+                 if (default(SProperty) != null)
+                 {
+                     return default;
+                 }
+                return default;
+            }
+
+            // 优先使用 Convert.ChangeType，因为它更符合直觉且稳定
+            try
+            {
+                return (SProperty)System.Convert.ChangeType(value, typeof(SProperty), System.Globalization.CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                // 如果 ChangeType 失败，尝试 TypeConverter 作为备选
+            }
+
             _sourcePropertyConverter ??= TypeDescriptor.GetConverter(typeof(SProperty));
 
-
-            if (_sourcePropertyConverter.CanConvertFrom(typeof(SProperty)))
+            if (_sourcePropertyConverter.CanConvertFrom(typeof(UProperty)))
             {
                 try
                 {
-                    return (SProperty)_sourcePropertyConverter.ConvertFrom(value);
+                    return (SProperty)_sourcePropertyConverter.ConvertFrom(null, System.Globalization.CultureInfo.InvariantCulture, value);
                 }
                 catch
                 {
-                    // 忽略，尝试下一步
+                    // ignore
                 }
             }
 
-            try
-            {
-                return (SProperty)System.Convert.ChangeType(value, typeof(SProperty));
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidCastException(
-                    $"无法将类型 {typeof(SProperty)} 转换为 {typeof(SProperty)}", ex);
-            }
+            throw new InvalidCastException(
+                $"无法将类型 {typeof(UProperty)} 转换为 {typeof(SProperty)}. Value: {value}");
         }
 
-        public void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression)
+        public IDisposableBinding TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression)
         {
             if (propertyExpression.Body is MemberExpression memberExp)
             {
-                _uiEventName = "+" + memberExp.Member.Name;
+                _uiEventHash = memberExp.Member.Name.GetHashCode();
             }
             else
             {
-                throw new Exception($"UGUI 事件绑定失败，事件名：{_uiEventName}");
+                throw new Exception($"UGUI 事件绑定失败，无法获取事件名");
             }
 
             // 编译表达式并获取委托
@@ -163,19 +210,24 @@ namespace LJVoyage.ObservationToolkit.Runtime.UGUI
             // 调用委托获取 UnityEvent<string>
             _uiEvent = propertyAccessor(_target);
 
-            _uiAction = CreateSetter();
+            var rawSetter = CreateSetter();
+            _uiAction = (value) =>
+            {
+                if (_isUpdatingUI) return;
+                rawSetter(value);
+            };
 
             _uiEvent.AddListener(_uiAction);
 
-            OneWay();
+            return OneWay();
         }
 
 
-        public void TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression,
+        public IDisposableBinding TwoWay(Expression<Func<U, UnityEvent<UProperty>>> propertyExpression,
             IConvert<SProperty, UProperty> convert)
         {
             _convert = convert;
-            TwoWay(propertyExpression);
+            return TwoWay(propertyExpression);
         }
     }
 }
