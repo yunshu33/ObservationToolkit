@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Voyage.ObservationToolkit.Runtime;
@@ -19,6 +20,17 @@ namespace Voyage.ObservationToolkit.Runtime.UGUI
         OneWayUGUIBinderBase<S, SProperty, U, UProperty>,
         ITwoWayBinder<S, SProperty, U, UProperty> where U : UIBehaviour
     {
+        /// <summary>
+        /// Setter 委托缓存。
+        /// key 由源对象真实类型、属性名和源属性类型组成，避免同类同属性反复编译表达式。
+        /// </summary>
+        private static readonly Dictionary<string, Action<object, SProperty>> SetterCache = new();
+
+        /// <summary>
+        /// Setter 缓存锁。
+        /// </summary>
+        private static readonly object SetterCacheLock = new();
+
         /// <summary>
         /// 注册到 UI 事件上的回写回调。
         /// </summary>
@@ -122,14 +134,14 @@ namespace Voyage.ObservationToolkit.Runtime.UGUI
 
         /// <summary>
         /// 创建 UI 值回写模型属性的委托。
-        /// 这里在绑定建立时只编译一次，避免每次 UI 事件触发时使用反射 SetValue。
+        /// 绑定实例只负责转换 UI 值；真正的属性 setter 使用全局缓存复用。
         /// </summary>
         protected UnityAction<UProperty> CreateSetter()
         {
             var source = _binding.Source;
             var propertyName = _binding.PropertyName;
-            var targetType = source.GetType();
-            var property = targetType.GetProperty(propertyName,
+            var sourceType = source.GetType();
+            var property = sourceType.GetProperty(propertyName,
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
             if (property == null || !property.CanWrite)
@@ -137,34 +149,49 @@ namespace Voyage.ObservationToolkit.Runtime.UGUI
                 throw new ArgumentException($"属性 {propertyName} 不存在或不可写。");
             }
 
-            var valueParam = Expression.Parameter(typeof(UProperty), "value");
-            var instance = Expression.Constant(source);
-
-            Expression convertedValue;
-            if (_isTypeEqual && _convert == null)
-            {
-                convertedValue = Expression.Convert(valueParam, typeof(SProperty));
-            }
-            else
-            {
-                var convertMethod = typeof(TwoWayUGUIBinderBase<S, SProperty, U, UProperty>).GetMethod(
-                    nameof(ConvertValueForSetter),
-                    BindingFlags.Instance | BindingFlags.NonPublic);
-                convertedValue = Expression.Call(Expression.Constant(this), convertMethod, valueParam);
-            }
-
-            var body = Expression.Assign(Expression.Property(instance, property), convertedValue);
-            var lambda = Expression.Lambda<UnityAction<UProperty>>(body, valueParam);
-            return lambda.Compile();
+            var setter = GetOrCreateSetter(sourceType, property);
+            return value => setter(source, TargetConvertSource(value));
         }
 
         /// <summary>
-        /// 给表达式树调用的转换桥接方法。
-        /// 单独留一个非虚私有方法，是为了稳定 MethodInfo 查找，再由这里分派到可覆写转换逻辑。
+        /// 获取或创建源属性 setter。
         /// </summary>
-        private SProperty ConvertValueForSetter(UProperty value)
+        private static Action<object, SProperty> GetOrCreateSetter(Type sourceType, PropertyInfo property)
         {
-            return TargetConvertSource(value);
+            var key = $"{sourceType.AssemblyQualifiedName}|{property.Name}|{typeof(SProperty).AssemblyQualifiedName}";
+            lock (SetterCacheLock)
+            {
+                if (SetterCache.TryGetValue(key, out var setter))
+                {
+                    return setter;
+                }
+            }
+
+            var compiledSetter = BuildSetter(sourceType, property);
+            lock (SetterCacheLock)
+            {
+                SetterCache[key] = compiledSetter;
+            }
+
+            return compiledSetter;
+        }
+
+        /// <summary>
+        /// 编译 open setter：参数为 object 源对象和强类型属性值。
+        /// 这样同一个 ViewModel 类型的同一属性可以复用同一个 setter 委托。
+        /// </summary>
+        private static Action<object, SProperty> BuildSetter(Type sourceType, PropertyInfo property)
+        {
+            var sourceParam = Expression.Parameter(typeof(object), "source");
+            var valueParam = Expression.Parameter(typeof(SProperty), "value");
+            var typedSource = Expression.Convert(sourceParam, sourceType);
+
+            Expression typedValue = property.PropertyType == typeof(SProperty)
+                ? valueParam
+                : Expression.Convert(valueParam, property.PropertyType);
+
+            var body = Expression.Assign(Expression.Property(typedSource, property), typedValue);
+            return Expression.Lambda<Action<object, SProperty>>(body, sourceParam, valueParam).Compile();
         }
 
         /// <summary>
