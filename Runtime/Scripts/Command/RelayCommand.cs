@@ -61,6 +61,7 @@ namespace Voyage.ObservationToolkit.Runtime.Command
 
     /// <summary>
     /// 带参数命令的通用实现。
+    /// 适合把按钮、菜单、快捷键等 UI 事件携带的参数传回 ViewModel。
     /// </summary>
     /// <typeparam name="T">命令参数类型。</typeparam>
     public class RelayCommand<T> : ICommand
@@ -95,8 +96,7 @@ namespace Voyage.ObservationToolkit.Runtime.Command
         public bool CanExecute(object parameter)
         {
             if (_canExecute == null) return true;
-            if (parameter == null && typeof(T).IsValueType) return _canExecute(default);
-            return _canExecute((T)parameter);
+            return _canExecute(ConvertParameter(parameter));
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Voyage.ObservationToolkit.Runtime.Command
         {
             if (CanExecute(parameter))
             {
-                _execute((T)parameter);
+                _execute(ConvertParameter(parameter));
             }
         }
 
@@ -116,6 +116,26 @@ namespace Voyage.ObservationToolkit.Runtime.Command
         public void RaiseCanExecuteChanged()
         {
             CanExecuteChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// 将 ICommand 的 object 参数转换为强类型参数。
+        /// Unity Inspector 或手写绑定可能传入 null；当 T 是值类型时使用 default(T)，保持 CanExecute 和 Execute 行为一致。
+        /// </summary>
+        private static T ConvertParameter(object parameter)
+        {
+            if (parameter == null)
+            {
+                return default;
+            }
+
+            if (parameter is T typedParameter)
+            {
+                return typedParameter;
+            }
+
+            throw new InvalidCastException(
+                $"命令参数类型错误，期望 {typeof(T).Name}，实际 {parameter.GetType().Name}。");
         }
     }
 }

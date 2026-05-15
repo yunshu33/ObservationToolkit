@@ -228,5 +228,17 @@ namespace Voyage.ObservationToolkit.Runtime.UGUI
         {
             return new ButtonCommandBinder<S>(target, binder.Binding);
         }
+
+        /// <summary>
+        /// 绑定到 Button 的 ICommand，并为命令提供固定参数。
+        /// 参数会在 Button 点击时传给 ICommand.CanExecute 和 ICommand.Execute。
+        /// </summary>
+        public static ButtonCommandBinder<S> To<S>(
+            this BindingSource<S, ICommand> binder,
+            Button target,
+            object parameter)
+        {
+            return new ButtonCommandBinder<S>(target, binder.Binding, parameter);
+        }
     }
 }
