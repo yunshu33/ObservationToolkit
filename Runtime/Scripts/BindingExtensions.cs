@@ -1,72 +1,56 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using Voyage.ObservationToolkit.Runtime.Converter;
 
-
 namespace Voyage.ObservationToolkit.Runtime
 {
+    /// <summary>
+    /// 可观察对象的绑定扩展方法。
+    /// </summary>
     public static class BindingExtensions
     {
+        /// <summary>
+        /// 获取或创建对象的 BindingHandler。
+        /// </summary>
         public static BindingHandler Binding(this IObservable bindingHandler)
         {
             bindingHandler.BindingHandler ??= new BindingHandler(bindingHandler);
-
             return bindingHandler.BindingHandler;
         }
 
-
         /// <summary>
-        /// 来自 属性的绑定
+        /// 创建来自属性的绑定源。
         /// </summary>
-        /// <param name="binding"></param>
-        /// <param name="propertyExpression"></param>
-        /// <typeparam name="S"></typeparam>
-        /// <typeparam name="SProperty"></typeparam>
-        /// <returns></returns>
         public static BindingSource<S, SProperty> For<S, SProperty>(this S binding,
             Expression<Func<S, SProperty>> propertyExpression) where S : class, IObservable
         {
             return Binding(binding).ObserveValue(propertyExpression);
         }
 
-
-        // /// <summary>
-        // /// 来自 属性的绑定
-        // /// </summary>
-        // /// <param name="binding"></param>
-        // /// <param name="propertyExpression"></param>
-        // /// <param name="convert"></param>
-        // /// <typeparam name="S"></typeparam>
-        // /// <typeparam name="SProperty"></typeparam>
-        // /// <returns></returns>
-        // public static BindingSource<S, SProperty> For<S, SProperty>
-        //     (this S binding, Expression<Func<S, SProperty>> propertyExpression, IConvert<SProperty, object> convert)
-        //     where S : class, IObservable
-        // {
-        //     var bindingSource = Binding(binding).ObserveValue(propertyExpression);
-        //
-        //     bindingSource.Converter = convert;
-        //
-        //     return bindingSource;
-        // }
-
+        /// <summary>
+        /// 创建来自属性的绑定源，并在源头设置 object 入口转换器。
+        /// 这个重载面向 IConvert 接口，适合把同一个转换器实例复用到多个绑定链。
+        /// </summary>
+        public static BindingSource<S, SProperty> For<S, SProperty>(this S binding,
+            Expression<Func<S, SProperty>> propertyExpression,
+            IConvert<SProperty, object> converter) where S : class, IObservable
+        {
+            return Binding(binding).ObserveValue(propertyExpression).With(converter);
+        }
 
         /// <summary>
-        /// 来自 字段的绑定
+        /// 设置字段并在值变化时发送属性通知。
         /// </summary>
-        /// <param name="binding"></param>
-        /// <param name="field"></param>
-        /// <param name="value"></param>
-        /// <param name="propertyName"></param>
-        /// <typeparam name="SProperty"></typeparam>
-        /// <returns></returns>
         public static bool SetField<SProperty>(this IObservable binding, ref SProperty field, SProperty value,
             [CallerMemberName] string propertyName = null)
         {
-            if (EqualityComparer<SProperty>.Default.Equals(field, value)) return false;
+            if (EqualityComparer<SProperty>.Default.Equals(field, value))
+            {
+                return false;
+            }
+
             field = value;
             binding.OnPropertyChanged(value, propertyName);
             return true;

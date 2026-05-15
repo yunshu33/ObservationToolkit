@@ -100,9 +100,21 @@ namespace Voyage.ObservationToolkit.Editor
 
             using (var ms = new MemoryStream())
             {
+                if (module.HasSymbols)
+                {
+                    using var pdb = new MemoryStream();
+                    module.Write(ms, new WriterParameters
+                    {
+                        WriteSymbols = true,
+                        SymbolWriterProvider = new PortablePdbWriterProvider(),
+                        SymbolStream = pdb
+                    });
+
+                    return new ILPostProcessResult(new InMemoryAssembly(ms.ToArray(), pdb.ToArray()));
+                }
+
                 module.Write(ms);
-                return new ILPostProcessResult(new InMemoryAssembly(ms.ToArray(),
-                    compiledAssembly.InMemoryAssembly.PdbData));
+                return new ILPostProcessResult(new InMemoryAssembly(ms.ToArray(), null));
             }
         }
 

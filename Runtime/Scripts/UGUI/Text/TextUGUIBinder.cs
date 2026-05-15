@@ -2,50 +2,58 @@ using System;
 using System.Collections.Generic;
 using Voyage.ObservationToolkit.Runtime;
 using Voyage.ObservationToolkit.Runtime.Converter;
-using UnityEngine;
 using UnityEngine.UI;
 
 namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
+    /// <summary>
+    /// Text 组件绑定器，负责将模型值显示为字符串。
+    /// </summary>
     public class TextUGUIBinder<S, SProperty> : OneWayUGUIBinderBase<S, SProperty, Text, string>
     {
+        /// <summary>
+        /// 创建 Text 绑定器。
+        /// </summary>
         public TextUGUIBinder(Text target, Action<string> handler, Binding<S, SProperty> binding) : base(target,
             handler, binding)
         {
         }
 
+        /// <summary>
+        /// 执行 Text 更新。
+        /// </summary>
         public override void Invoke(S source, SProperty property)
         {
             if (_hasLastSValue && EqualityComparer<SProperty>.Default.Equals(_lastSValue, property))
             {
-                // UnityEngine.Debug.Log($"[TextBinder] 触发重复值过滤: {property}");
                 return;
             }
 
             _lastSValue = property;
             _hasLastSValue = true;
 
-            if (_convert != null)
-            {
-                Handler?.Invoke(_convert.SourceConvertTarget(property));
-            }
-            else
-            {
-                // 特殊处理：如果没有转换器，直接调用 ToString()
-                Handler?.Invoke(Convert.ToString(property, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty);
-            }
+            Handler?.Invoke(_convert != null
+                ? _convert.SourceConvertTarget(property)
+                : ConversionUtility.Convert<string>(property) ?? string.Empty);
         }
-        
-        // 移除 Unbind 和 OnUnbind，直接使用基类 OneWayUGUIBinderBase 的实现
-        
+
+        /// <summary>
+        /// 建立带转换器的单向绑定。
+        /// </summary>
         public override IDisposableBinding OneWay(IConvert<SProperty, string> convert)
         {
             return base.OneWay(convert);
         }
     }
 
+    /// <summary>
+    /// Text 事件代理，统一封装 Text.text 写入。
+    /// </summary>
     public class TextBindingEventProxy : UIBindingEventProxy<Text, string>
     {
+        /// <summary>
+        /// 设置 Text.text。
+        /// </summary>
         public override void SetValue(string value)
         {
             Target.text = value;

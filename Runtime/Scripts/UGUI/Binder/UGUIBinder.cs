@@ -7,59 +7,75 @@ using UnityEngine.EventSystems;
 namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
     /// <summary>
-    /// UGUI 绑定器基类，专门处理 Unity UI 组件的绑定
+    /// UGUI 绑定器基类，负责保存目标组件、去重和生命周期释放。
     /// </summary>
-    /// <typeparam name="S">源对象类型</typeparam>
-    /// <typeparam name="SProperty">源属性类型</typeparam>
-    /// <typeparam name="U">UI 组件类型 (如 Text, Button)</typeparam>
-    /// <typeparam name="UProperty">UI 属性类型 (如 string, bool)</typeparam>
+    /// <typeparam name="S">源对象类型。</typeparam>
+    /// <typeparam name="SProperty">源属性类型。</typeparam>
+    /// <typeparam name="U">UGUI 组件类型。</typeparam>
+    /// <typeparam name="UProperty">UGUI 属性或事件值类型。</typeparam>
     public abstract class UGUIBinder<S, SProperty, U, UProperty> : Binder<S, SProperty, UProperty>,
-        IOneWayBinder<S, SProperty, UProperty>, IDisposableBinding where U : UIBehaviour
+        IOneWayBinder<S, SProperty, U, UProperty>, IDisposableBinding where U : UIBehaviour
     {
+        /// <summary>
+        /// 绑定释放时触发，用于 BindingContext 自动移除。
+        /// </summary>
         public event Action OnDisposed;
 
         /// <summary>
-        /// 绑定的目标 UI 组件
+        /// 目标 UGUI 组件。
         /// </summary>
         protected readonly U _target;
-        
+
         /// <summary>
-        /// 标记当前是否正在进行绑定操作（防止循环更新）
+        /// 当前是否已经绑定到 Binding。
         /// </summary>
         protected bool isBinding = false;
 
         /// <summary>
-        /// 缓存上一次的源属性值，用于去重
+        /// 上一次收到的源属性值，用于跳过重复 UI 更新。
         /// </summary>
         protected SProperty _lastSValue;
 
         /// <summary>
-        /// 标记是否已经有了上一次的值
+        /// 是否已经缓存过源属性值。
         /// </summary>
         protected bool _hasLastSValue = false;
 
+        /// <summary>
+        /// 当前绑定使用的转换器。
+        /// 暴露为属性是为了让 To(component, converter) 可以先设置转换器，再由调用方选择 OneWay 或 TwoWay。
+        /// </summary>
+        public IConvert<SProperty, UProperty> Converter
+        {
+            get => _convert;
+            set => _convert = value;
+        }
 
-        private int _hashCode;
+        /// <summary>
+        /// 目标组件哈希缓存。
+        /// </summary>
+        private readonly int _hashCode;
 
+        /// <summary>
+        /// 创建 UGUI 绑定器。
+        /// </summary>
         protected UGUIBinder(U target, Action<UProperty> handler, Binding<S, SProperty> binding) : base(handler,
             binding)
         {
-            _target = target;
+            _target = target ?? throw new ArgumentNullException(nameof(target));
+            _hashCode = target.GetHashCode();
         }
 
-
         /// <summary>
-        /// 使用目标 UI 组件的 HashCode 作为绑定的标识
+        /// 绑定唯一哈希。UGUI 单向绑定默认以目标组件为唯一键。
         /// </summary>
-        public override int HashCode => _target.GetHashCode();
-
+        public override int HashCode => _hashCode;
 
         /// <summary>
-        /// 执行绑定回调，包含防抖/去重逻辑
+        /// 执行 Model -> UI 更新，并过滤重复值，减少 UI 重绘。
         /// </summary>
         public override void Invoke(S source, SProperty property)
         {
-            // 如果新值与旧值相同，则不触发更新，避免不必要的 UI 重绘
             if (_hasLastSValue && EqualityComparer<SProperty>.Default.Equals(_lastSValue, property))
             {
                 return;
@@ -71,17 +87,37 @@ namespace Voyage.ObservationToolkit.Runtime.UGUI
             base.Invoke(source, property);
         }
 
+        /// <summary>
+        /// 建立默认单向绑定。
+        /// </summary>
         public abstract IDisposableBinding OneWay();
 
+        /// <summary>
+        /// 建立带转换器的单向绑定。
+        /// </summary>
         public abstract IDisposableBinding OneWay(IConvert<SProperty, UProperty> convert);
-        
+
+        /// <summary>
+        /// 建立带转换函数的单向绑定。
+        /// </summary>
+        public abstract IDisposableBinding OneWay(Func<SProperty, UProperty> sourceToTarget);
+
+        /// <summary>
+        /// 手动解除绑定。
+        /// </summary>
         public abstract void Unbind();
 
+        /// <summary>
+        /// 释放资源，等同于 Unbind。
+        /// </summary>
         public void Dispose()
         {
             Unbind();
         }
-        
+
+        /// <summary>
+        /// 通知外部绑定已经释放，并清空事件引用避免泄漏。
+        /// </summary>
         protected void NotifyDisposed()
         {
             OnDisposed?.Invoke();

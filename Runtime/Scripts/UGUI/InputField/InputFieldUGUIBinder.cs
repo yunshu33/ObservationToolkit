@@ -1,32 +1,34 @@
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
 using Voyage.ObservationToolkit.Runtime;
 using Voyage.ObservationToolkit.Runtime.Converter;
-using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Voyage.ObservationToolkit.Runtime.UGUI
 {
+    /// <summary>
+    /// InputField 绑定器，支持字符串显示和 onValueChanged 双向回写。
+    /// </summary>
     public class InputFieldUGUIBinder<S, SProperty> : TwoWayUGUIBinderBase<S, SProperty, InputField, string>
     {
+        /// <summary>
+        /// 创建 InputField 绑定器。
+        /// </summary>
         public InputFieldUGUIBinder(InputField target, Action<string> handler, Binding<S, SProperty> binding) : base(
             target, handler, binding)
         {
         }
 
-
+        /// <summary>
+        /// 执行 Model -> InputField 更新。
+        /// </summary>
         public override void Invoke(S source, SProperty property)
         {
             if (_hasLastSValue && EqualityComparer<SProperty>.Default.Equals(_lastSValue, property))
             {
-                // UnityEngine.Debug.Log($"[InputFieldBinder] 触发重复值过滤: {property}");
                 return;
             }
 
-            // 防覆盖检查：如果 InputField 的值（解析后）与新值相等，就不更新 UI，防止打断用户输入（如 "1." -> "1"）
             if (IsInputContentEqual(property))
             {
                 _lastSValue = property;
@@ -40,15 +42,9 @@ namespace Voyage.ObservationToolkit.Runtime.UGUI
             try
             {
                 _isUpdatingUI = true;
-
-                if (_convert != null)
-                {
-                    Handler?.Invoke(_convert.SourceConvertTarget(property));
-                }
-                else
-                {
-                    Handler?.Invoke(Convert.ToString(property, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty);
-                }
+                Handler?.Invoke(_convert != null
+                    ? _convert.SourceConvertTarget(property)
+                    : ConversionUtility.Convert<string>(property) ?? string.Empty);
             }
             finally
             {
@@ -56,11 +52,14 @@ namespace Voyage.ObservationToolkit.Runtime.UGUI
             }
         }
 
+        /// <summary>
+        /// 判断当前输入内容解析后是否已经等于模型值。
+        /// 这样可以避免用户输入 "1." 时被立即格式化成 "1"。
+        /// </summary>
         private bool IsInputContentEqual(SProperty newValue)
         {
             try
             {
-                // 使用基类的 TargetConvertSource 进行解析（包含 CultureInfo 处理）
                 var currentVal = TargetConvertSource(_target.text);
                 return EqualityComparer<SProperty>.Default.Equals(currentVal, newValue);
             }
@@ -70,6 +69,9 @@ namespace Voyage.ObservationToolkit.Runtime.UGUI
             }
         }
 
+        /// <summary>
+        /// 将 InputField 字符串转换回模型值。
+        /// </summary>
         protected override SProperty TargetConvertSource(string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -80,17 +82,23 @@ namespace Voyage.ObservationToolkit.Runtime.UGUI
             return base.TargetConvertSource(value);
         }
 
+        /// <summary>
+        /// 建立带转换器的单向绑定。
+        /// </summary>
         public override IDisposableBinding OneWay(IConvert<SProperty, string> convert)
         {
             return base.OneWay(convert);
         }
-
-       
     }
 
-
+    /// <summary>
+    /// InputField 事件代理，统一封装 InputField.text 写入。
+    /// </summary>
     public class InputFieldBindingEventProxy : UIBindingEventProxy<InputField, string>
     {
+        /// <summary>
+        /// 设置 InputField.text。
+        /// </summary>
         public override void SetValue(string value)
         {
             Target.text = value;

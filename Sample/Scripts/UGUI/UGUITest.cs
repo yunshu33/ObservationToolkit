@@ -36,7 +36,8 @@ namespace Voyage.ObservationToolkit.Sample.UGUI
                     .OneWay()
                     .AddTo(this); 
             }
-
+            
+            
             // 2. InputField 双向绑定 (float <-> string)
             // 自动处理 CultureInfo 和 防重入
             if (inputField != null)
