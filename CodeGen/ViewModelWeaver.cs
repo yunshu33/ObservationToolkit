@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Linq;
-using Voyage.ObservationToolkit.Runtime;
+using VoyageForge.ObservationToolkit.Runtime;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 
-namespace Voyage.ObservationToolkit.Editor
+namespace VoyageForge.ObservationToolkit.Editor
 {
     /// <summary>
     /// 处理 ViewModel<T> 类型的属性代理

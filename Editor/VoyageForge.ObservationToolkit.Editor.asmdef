@@ -1,7 +1,9 @@
-{
-    "name": "Unity.ObservationToolkit.CodeGen",
+﻿{
+    "name": "VoyageForge.ObservationToolkit.Editor",
     "rootNamespace": "",
-    "references": ["GUID:40311e219f18080498d40f81bef463e0"],
+    "references": [
+        "GUID:40311e219f18080498d40f81bef463e0"
+    ],
     "includePlatforms": [
         "Editor"
     ],
@@ -9,7 +11,7 @@
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Voyage.ObservationToolkit.Editor.Settings
+namespace VoyageForge.ObservationToolkit.Editor.Settings
 {
     [Serializable]
     public class ObservationWeaverConfig
@@ -15,7 +15,7 @@ namespace Voyage.ObservationToolkit.Editor.Settings
         public bool weaveAssemblyCSharp = true;
         public List<string> extraAssemblies = new List<string>()
         {
-            "Voyage.ObservationToolkit.Sample"
+            "VoyageForge.ObservationToolkit.Sample"
         };
     }
 
@@ -32,7 +32,7 @@ namespace Voyage.ObservationToolkit.Editor.Settings
         [SerializeField] private VisualTreeAsset _visualTree;
         [SerializeField] private StyleSheet _styleSheet;
 
-        [MenuItem("Voyage/Observation Settings")]
+        [MenuItem("VoyageForge/Observation Settings")]
         public static void ShowWindow()
         {
             var wnd = GetWindow<ObservationSettingsWindow>();

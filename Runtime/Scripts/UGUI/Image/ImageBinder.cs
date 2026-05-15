@@ -1,9 +1,9 @@
-using System;
-using Voyage.ObservationToolkit.Runtime;
+﻿using System;
+using VoyageForge.ObservationToolkit.Runtime;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Voyage.ObservationToolkit.Runtime.UGUI
+namespace VoyageForge.ObservationToolkit.Runtime.UGUI
 {
     /// <summary>
     /// Image 绑定器，负责将模型值绑定到 Image.sprite。

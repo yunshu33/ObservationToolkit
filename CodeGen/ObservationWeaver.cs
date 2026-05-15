@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Voyage.ObservationToolkit.Runtime.ViewModel;
+using VoyageForge.ObservationToolkit.Runtime.ViewModel;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Unity.CompilationPipeline.Common.ILPostProcessing;
 using UnityEngine;
 
-namespace Voyage.ObservationToolkit.Editor
+namespace VoyageForge.ObservationToolkit.Editor
 {
     /// <summary>
     /// 观察工具编织器
@@ -35,7 +35,7 @@ namespace Voyage.ObservationToolkit.Editor
             List<string> assemblies = new()
             {
                 "Assembly-CSharp",
-                "Voyage.ObservationToolkit.Sample"
+                "VoyageForge.ObservationToolkit.Sample"
             };
 
             // Load from config
@@ -160,7 +160,7 @@ namespace Voyage.ObservationToolkit.Editor
         {
             var runtimeDllPath = Path.Combine(
                 Environment.CurrentDirectory,
-                "Library/ScriptAssemblies/Voyage.ObservationToolkit.Runtime.dll");
+                "Library/ScriptAssemblies/VoyageForge.ObservationToolkit.Runtime.dll");
 
             if (!File.Exists(runtimeDllPath)) return null;
 

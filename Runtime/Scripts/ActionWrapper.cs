@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Voyage.ObservationToolkit.Runtime
+namespace VoyageForge.ObservationToolkit.Runtime
 {
     public class ActionWrapper<T, TProperty> : ActionWrapper, IDisposable
     {

@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 
-namespace Voyage.ObservationToolkit.Runtime
+namespace VoyageForge.ObservationToolkit.Runtime
 {
     /// <summary>
     /// 标记需要由 IL Weaver 注入观察通知的属性或类。

@@ -1,9 +1,9 @@
-using System;
-using Voyage.ObservationToolkit.Runtime;
-using Voyage.ObservationToolkit.Runtime.Converter;
+﻿using System;
+using VoyageForge.ObservationToolkit.Runtime;
+using VoyageForge.ObservationToolkit.Runtime.Converter;
 using UnityEngine.EventSystems;
 
-namespace Voyage.ObservationToolkit.Runtime.UGUI
+namespace VoyageForge.ObservationToolkit.Runtime.UGUI
 {
     /// <summary>
     /// UGUI 单向绑定基类，负责注册和移除 Model -> UI 的绑定关系。

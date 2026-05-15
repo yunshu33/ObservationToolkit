@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using UnityEngine;
 
-namespace Voyage.ObservationToolkit.Runtime.ViewModel
+namespace VoyageForge.ObservationToolkit.Runtime.ViewModel
 {
     /// <summary>
     /// ViewModel 基类，用于包装可序列化数据模型并提供绑定通知能力。

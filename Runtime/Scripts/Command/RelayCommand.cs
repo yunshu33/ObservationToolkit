@@ -1,6 +1,7 @@
-using System;
+﻿using System;
+using VoyageForge.ObservationToolkit.Runtime.Converter;
 
-namespace Voyage.ObservationToolkit.Runtime.Command
+namespace VoyageForge.ObservationToolkit.Runtime.Command
 {
     /// <summary>
     /// 无参数命令的通用实现。
@@ -121,7 +122,10 @@ namespace Voyage.ObservationToolkit.Runtime.Command
         /// <summary>
         /// 将 ICommand 的 object 参数转换为强类型参数。
         /// Unity Inspector 或手写绑定可能传入 null；当 T 是值类型时使用 default(T)，保持 CanExecute 和 Execute 行为一致。
+        /// 其它类型转换复用绑定系统的 ConversionUtility，让 Command 参数和普通 UI 绑定保持一致。
         /// </summary>
+        /// <param name="parameter">ICommand 入口收到的原始 object 参数。</param>
+        /// <returns>转换为 T 后的强类型命令参数。</returns>
         private static T ConvertParameter(object parameter)
         {
             if (parameter == null)
@@ -134,8 +138,15 @@ namespace Voyage.ObservationToolkit.Runtime.Command
                 return typedParameter;
             }
 
-            throw new InvalidCastException(
-                $"命令参数类型错误，期望 {typeof(T).Name}，实际 {parameter.GetType().Name}。");
+            try
+            {
+                return ConversionUtility.Convert<T>(parameter);
+            }
+            catch (Exception e)
+            {
+                throw new InvalidCastException(
+                    $"命令参数类型错误，期望 {typeof(T).Name}，实际 {parameter.GetType().Name}。", e);
+            }
         }
     }
 }

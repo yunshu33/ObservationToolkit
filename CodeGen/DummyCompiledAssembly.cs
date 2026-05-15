@@ -1,6 +1,6 @@
 ﻿using Unity.CompilationPipeline.Common.ILPostProcessing;
 
-namespace Voyage.ObservationToolkit.Editor
+namespace VoyageForge.ObservationToolkit.Editor
 {
     class DummyCompiledAssembly : ICompiledAssembly
     {

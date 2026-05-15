@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
-using Voyage.ObservationToolkit.Runtime.ViewModel;
+using VoyageForge.ObservationToolkit.Runtime.ViewModel;
 
-namespace Voyage.ObservationToolkit.Editor.Inspector
+namespace VoyageForge.ObservationToolkit.Editor.Inspector
 {
     [CustomPropertyDrawer(typeof(ViewModel<>), true)]
     public class ViewModelDrawer : PropertyDrawer

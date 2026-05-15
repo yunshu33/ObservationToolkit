@@ -3,7 +3,7 @@ using Unity.CompilationPipeline.Common.ILPostProcessing;
 using UnityEditor;
 using UnityEngine;
 
-namespace Voyage.ObservationToolkit.Editor
+namespace VoyageForge.ObservationToolkit.Editor
 {
     public class ILPPTest
     {

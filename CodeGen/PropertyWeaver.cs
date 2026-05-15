@@ -1,10 +1,10 @@
-using System.Linq;
-using Voyage.ObservationToolkit.Runtime;
+﻿using System.Linq;
+using VoyageForge.ObservationToolkit.Runtime;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 
-namespace Voyage.ObservationToolkit.Editor
+namespace VoyageForge.ObservationToolkit.Editor
 {
     /// <summary>
     /// 标准属性通知编织器
