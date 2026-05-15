@@ -370,6 +370,189 @@ private void OnDestroy()
 }
 ```
 
+## 性能实现细节
+
+ObservationToolkit 的绑定 API 使用表达式、反射和委托来换取更好的调用体验。为了避免这些机制在高频绑定场景里反复产生额外开销，运行时对两个关键位置做了缓存：属性表达式解析缓存，以及双向绑定 setter 全局缓存。
+
+### 表达式到属性名缓存
+
+用户创建绑定时通常会写：
+
+```csharp
+model.For(m => m.Value)
+    .To(text)
+    .OneWay()
+    .AddTo(this);
+```
+
+这里的 `m => m.Value` 是表达式树。绑定系统需要从表达式树里解析出属性名 `Value`，再用这个名字把绑定注册到 `BindingHandler` 的字典中。旧实现每次调用 `For` 都会重新解析表达式：
+
+```csharp
+if (propertyExpression.Body is not MemberExpression memberExpression ||
+    memberExpression.Member.MemberType != MemberTypes.Property)
+{
+    throw new ArgumentException("属性指定错误，必须为属性表达式。");
+}
+
+var propertyName = memberExpression.Member.Name;
+```
+
+现在 `BindingHandler` 内部增加了全局缓存：
+
+```csharp
+private static readonly Dictionary<string, string> PropertyNameCache = new();
+private static readonly object PropertyNameCacheLock = new();
+```
+
+解析流程变成：
+
+```csharp
+private static string GetPropertyName<S, SProperty>(
+    Expression<Func<S, SProperty>> propertyExpression)
+{
+    var cacheKey = $"{typeof(S).FullName}:{propertyExpression.Body}";
+
+    lock (PropertyNameCacheLock)
+    {
+        if (PropertyNameCache.TryGetValue(cacheKey, out var cachedName))
+        {
+            return cachedName;
+        }
+    }
+
+    // 第一次遇到这个表达式时才解析表达式树。
+    var propertyName = memberExpression.Member.Name;
+
+    lock (PropertyNameCacheLock)
+    {
+        PropertyNameCache[cacheKey] = propertyName;
+    }
+
+    return propertyName;
+}
+```
+
+这个缓存的使用者不需要写额外代码，仍然按原来的方式创建绑定即可：
+
+```csharp
+model.For(m => m.Value).To(text).OneWay();
+model.For(m => m.Value).To(slider).TwoWay(s => s.onValueChanged);
+model.For(m => m.Value).To(inputField).TwoWay(i => i.onValueChanged);
+```
+
+第一次解析 `m => m.Value` 时会写入缓存，后面相同类型和相同属性表达式再次绑定时会直接复用属性名。它优化的是“建立绑定”的成本，不改变属性变化后的分发逻辑。
+
+注意事项：
+
+- 表达式必须直接指向属性，例如 `m => m.Value`。
+- 不支持字段、方法调用或复杂表达式，例如 `m => m.Value + 1`。
+- 缓存 key 包含源类型和表达式文本，避免不同 ViewModel 上同名属性互相干扰。
+
+### 双向绑定 setter 全局缓存
+
+双向绑定需要把 UI 的值回写到 ViewModel：
+
+```csharp
+model.For(m => m.Value)
+    .To(slider)
+    .TwoWay(s => s.onValueChanged)
+    .AddTo(this);
+```
+
+当 `Slider.onValueChanged` 触发时，绑定系统会把 `float` 转成模型属性类型，然后写回 `model.Value`。直接用反射 `PropertyInfo.SetValue` 会在频繁 UI 事件中产生额外开销，所以 `TwoWayUGUIBinderBase` 会在绑定建立时生成 setter 委托。
+
+进一步优化后，setter 委托被提升为全局缓存：
+
+```csharp
+private static readonly Dictionary<string, Action<object, SProperty>> SetterCache = new();
+private static readonly object SetterCacheLock = new();
+```
+
+缓存 key 由三部分组成：
+
+```text
+源对象真实类型 | 属性名 | 源属性类型
+```
+
+例如同一个 `PlayerViewModel.Value` 被绑定到多个 UI 控件时，只需要编译一次 setter：
+
+```csharp
+model.For(m => m.Value).To(inputField).TwoWay(i => i.onValueChanged);
+model.For(m => m.Value).To(slider).TwoWay(s => s.onValueChanged);
+```
+
+内部创建 setter 的流程是：
+
+```csharp
+protected UnityAction<UProperty> CreateSetter()
+{
+    var source = _binding.Source;
+    var property = source.GetType().GetProperty(_binding.PropertyName, flags);
+
+    var setter = GetOrCreateSetter(source.GetType(), property);
+
+    return value => setter(source, TargetConvertSource(value));
+}
+```
+
+真正缓存的是 open setter：
+
+```csharp
+private static Action<object, SProperty> BuildSetter(Type sourceType, PropertyInfo property)
+{
+    var sourceParam = Expression.Parameter(typeof(object), "source");
+    var valueParam = Expression.Parameter(typeof(SProperty), "value");
+
+    var typedSource = Expression.Convert(sourceParam, sourceType);
+    var body = Expression.Assign(
+        Expression.Property(typedSource, property),
+        valueParam);
+
+    return Expression
+        .Lambda<Action<object, SProperty>>(body, sourceParam, valueParam)
+        .Compile();
+}
+```
+
+`CreateSetter` 返回给 UI 事件的闭包仍然保留当前绑定实例，因为每个绑定可能有不同的转换器：
+
+```csharp
+return value => setter(source, TargetConvertSource(value));
+```
+
+这意味着：
+
+- setter 委托可以跨同类型、同属性的多个绑定复用。
+- `TargetConvertSource` 仍然按当前绑定实例执行，支持默认转换、自定义函数转换器和 `IConvert<TSource, TTarget>`。
+- Slider 的 `float -> int`、`int -> float` 等特殊转换仍然在写回前处理。
+
+使用方式不变：
+
+```csharp
+// 默认转换。
+model.For(m => m.Value)
+    .To(slider)
+    .TwoWay(s => s.onValueChanged)
+    .AddTo(this);
+
+// 自定义转换函数。
+model.For(m => m.Value)
+    .To(inputField)
+    .TwoWay(
+        i => i.onValueChanged,
+        value => value.ToString("0.0"),
+        text => float.TryParse(text, out var result) ? result : 0f)
+    .AddTo(this);
+
+// 自定义转换器接口。
+model.For(m => m.Index)
+    .To(slider, sliderConvert)
+    .TwoWay(s => s.onValueChanged)
+    .AddTo(this);
+```
+
+这个缓存优化的是“UI 事件回写模型”的路径，尤其适合多个页面或列表项中大量重复绑定同类 ViewModel 属性的场景。
+
 ## IL Weaver 配置
 
 编辑器菜单：
