@@ -12,6 +12,7 @@ namespace VoyageForge.ObservationToolkit.Editor.Settings
     public class ObservationWeaverConfig
     {
         public bool enableWeaver = true;
+        public bool enableLogging = true;
         public bool weaveAssemblyCSharp = true;
         public List<string> extraAssemblies = new List<string>()
         {
@@ -22,6 +23,7 @@ namespace VoyageForge.ObservationToolkit.Editor.Settings
     public class ObservationSettingsWindow : EditorWindow
     {
         private const string ConfigPath = "ProjectSettings/ObservationWeaverSettings.json";
+        private static readonly string LogPath = Path.Combine("Library", "ObservationToolkit", "ObservationWeaver.log");
         private ObservationWeaverConfig _config;
         private ScrollView _listContainer;
         private TextField _searchField;
@@ -53,6 +55,21 @@ namespace VoyageForge.ObservationToolkit.Editor.Settings
                 {
                     var json = File.ReadAllText(ConfigPath);
                     _config = JsonUtility.FromJson<ObservationWeaverConfig>(json);
+                    if (_config == null)
+                    {
+                        _config = new ObservationWeaverConfig();
+                    }
+
+                    if (!json.Contains("\"enableLogging\""))
+                    {
+                        _config.enableLogging = true;
+                        SaveConfig();
+                    }
+
+                    if (MigrateLegacyAssemblyNames())
+                    {
+                        SaveConfig();
+                    }
                     
                     // Migration check: if old config structure was loaded (where assemblies list contained "Assembly-CSharp")
                     // we might want to clean it up, but JsonUtility is simple.
@@ -90,6 +107,30 @@ namespace VoyageForge.ObservationToolkit.Editor.Settings
             }
         }
 
+        private bool MigrateLegacyAssemblyNames()
+        {
+            var changed = false;
+            changed |= ReplaceAssemblyName("Voyage.ObservationToolkit.Sample", "VoyageForge.ObservationToolkit.Sample");
+            return changed;
+        }
+
+        private bool ReplaceAssemblyName(string oldName, string newName)
+        {
+            var oldIndex = _config.extraAssemblies.IndexOf(oldName);
+            if (oldIndex < 0)
+            {
+                return false;
+            }
+
+            _config.extraAssemblies.RemoveAt(oldIndex);
+            if (!_config.extraAssemblies.Contains(newName))
+            {
+                _config.extraAssemblies.Insert(oldIndex, newName);
+            }
+
+            return true;
+        }
+
         public void CreateGUI()
         {
             var root = rootVisualElement;
@@ -124,6 +165,17 @@ namespace VoyageForge.ObservationToolkit.Editor.Settings
                 });
             }
 
+            var enableLoggingToggle = root.Q<Toggle>("enable-logging-toggle");
+            if (enableLoggingToggle != null)
+            {
+                enableLoggingToggle.value = _config.enableLogging;
+                enableLoggingToggle.RegisterValueChangedCallback(evt =>
+                {
+                    _config.enableLogging = evt.newValue;
+                    SaveConfig();
+                });
+            }
+
             var weaveAssemblyCSharpToggle = root.Q<Toggle>("weave-assembly-csharp-toggle");
             if (weaveAssemblyCSharpToggle != null)
             {
@@ -142,6 +194,18 @@ namespace VoyageForge.ObservationToolkit.Editor.Settings
             _manualAddField = root.Q<TextField>("manual-add-field");
             var manualAddBtn = root.Q<Button>("manual-add-button");
             var gearBtn = root.Q<Button>("gear-button");
+            var openLogBtn = root.Q<Button>("open-log-button");
+            var clearLogBtn = root.Q<Button>("clear-log-button");
+
+            if (openLogBtn != null)
+            {
+                openLogBtn.clicked += OpenLogFile;
+            }
+
+            if (clearLogBtn != null)
+            {
+                clearLogBtn.clicked += ClearLogFile;
+            }
 
             // Search Logic
             if (_searchField != null)
@@ -294,6 +358,36 @@ namespace VoyageForge.ObservationToolkit.Editor.Settings
                 }
                 _manualAddField.value = "";
             }
+        }
+
+        private void OpenLogFile()
+        {
+            var fullPath = Path.GetFullPath(LogPath);
+            var directory = Path.GetDirectoryName(fullPath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            if (!File.Exists(fullPath))
+            {
+                File.WriteAllText(fullPath, string.Empty);
+            }
+
+            EditorUtility.RevealInFinder(fullPath);
+        }
+
+        private void ClearLogFile()
+        {
+            var fullPath = Path.GetFullPath(LogPath);
+            var directory = Path.GetDirectoryName(fullPath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            File.WriteAllText(fullPath, string.Empty);
+            Debug.Log($"Observation Weaver log cleared: {fullPath}");
         }
 
         [Serializable]

@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using VoyageForge.ObservationToolkit.Runtime.ViewModel;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using Unity.CompilationPipeline.Common.Diagnostics;
 using Unity.CompilationPipeline.Common.ILPostProcessing;
-using UnityEngine;
 
 namespace VoyageForge.ObservationToolkit.Editor
 {
@@ -21,9 +22,17 @@ namespace VoyageForge.ObservationToolkit.Editor
         private class WeaverConfig
         {
             public bool enableWeaver = true;
+            public bool enableLogging = true;
             public bool weaveAssemblyCSharp = true;
             public List<string> extraAssemblies = new List<string>();
         }
+
+        private static bool _enableLogging = true;
+        private static string LogFilePath => Path.Combine(
+            Environment.CurrentDirectory,
+            "Library",
+            "ObservationToolkit",
+            "ObservationWeaver.log");
 
         public override ILPostProcessor GetInstance()
         {
@@ -32,6 +41,8 @@ namespace VoyageForge.ObservationToolkit.Editor
 
         public override bool WillProcess(ICompiledAssembly compiledAssembly)
         {
+            _enableLogging = true;
+            var configPath = Path.Combine(Environment.CurrentDirectory, "ProjectSettings", "ObservationWeaverSettings.json");
             List<string> assemblies = new()
             {
                 "Assembly-CSharp",
@@ -39,18 +50,19 @@ namespace VoyageForge.ObservationToolkit.Editor
             };
 
             // Load from config
-            var configPath = Path.Combine(Environment.CurrentDirectory, "ProjectSettings", "ObservationWeaverSettings.json");
             if (File.Exists(configPath))
             {
                 try
                 {
-                    var json = File.ReadAllText(configPath);
-                    var config = JsonUtility.FromJson<WeaverConfig>(json);
+                    var config = LoadConfig(configPath);
                     if (config != null)
                     {
+                        _enableLogging = config.enableLogging;
+
                         // 1. Check Global Switch
                         if (!config.enableWeaver)
                         {
+                            LogToFile($"Skipped {compiledAssembly.Name}: weaver is disabled in {configPath}.");
                             return false;
                         }
 
@@ -64,7 +76,7 @@ namespace VoyageForge.ObservationToolkit.Editor
 
                         if (config.extraAssemblies != null)
                         {
-                            assemblies.AddRange(config.extraAssemblies);
+                            assemblies.AddRange(NormalizeAssemblyNames(config.extraAssemblies));
                         }
                     }
                 }
@@ -74,29 +86,47 @@ namespace VoyageForge.ObservationToolkit.Editor
                 }
             }
 
-            return assemblies.Any(x => x == compiledAssembly.Name);
+            var willProcess = assemblies.Any(x => x == compiledAssembly.Name);
+            if (willProcess)
+            {
+                LogToFile($"Will process {compiledAssembly.Name}.");
+            }
+
+            return willProcess;
         }
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
         {
+            _enableLogging = LoadLoggingEnabled();
+            var diagnostics = new List<DiagnosticMessage>();
+            Log(diagnostics, $"Processing {compiledAssembly.Name}.");
+
             var readerParameters = CreateReaderParameters(compiledAssembly);
             var module = ModuleDefinition.ReadModule(new MemoryStream(compiledAssembly.InMemoryAssembly.PeData), readerParameters);
 
             var setFieldRef = FindSetFieldInOtherAssembly(module);
 
             if (setFieldRef == null)
-                return new ILPostProcessResult(compiledAssembly.InMemoryAssembly);
+            {
+                Log(diagnostics, $"Skipped {compiledAssembly.Name}: could not resolve BindingExtensions.SetField from Runtime assembly.");
+                return new ILPostProcessResult(compiledAssembly.InMemoryAssembly, diagnostics);
+            }
+
+            var propertyWeaveCount = 0;
+            var viewModelRewriteCount = 0;
 
             foreach (var type in module.GetAllTypes())
             {
                 if (!type.HasProperties) continue;
 
                 // 1. 处理 ViewModel<T> 自动代理
-                new ViewModelWeaver(type, setFieldRef).Process();
+                viewModelRewriteCount += new ViewModelWeaver(type, setFieldRef).Process();
 
                 // 2. 处理标准属性通知
-                new PropertyWeaver(type, setFieldRef).Process();
+                propertyWeaveCount += new PropertyWeaver(type, setFieldRef).Process();
             }
+
+            Log(diagnostics, $"Processed {compiledAssembly.Name}: property notifications={propertyWeaveCount}, view model accessors={viewModelRewriteCount}.");
 
             using (var ms = new MemoryStream())
             {
@@ -110,11 +140,11 @@ namespace VoyageForge.ObservationToolkit.Editor
                         SymbolStream = pdb
                     });
 
-                    return new ILPostProcessResult(new InMemoryAssembly(ms.ToArray(), pdb.ToArray()));
+                    return new ILPostProcessResult(new InMemoryAssembly(ms.ToArray(), pdb.ToArray()), diagnostics);
                 }
 
                 module.Write(ms);
-                return new ILPostProcessResult(new InMemoryAssembly(ms.ToArray(), null));
+                return new ILPostProcessResult(new InMemoryAssembly(ms.ToArray(), null), diagnostics);
             }
         }
 
@@ -171,6 +201,104 @@ namespace VoyageForge.ObservationToolkit.Editor
                 m.Parameters.Count >= 2 && m.Parameters[0].ParameterType.Name == "IObservable");
 
             return methodDef == null ? null : module.ImportReference(methodDef);
+        }
+
+        private static void Log(List<DiagnosticMessage> diagnostics, string message)
+        {
+            if (!_enableLogging) return;
+            diagnostics.Add(new DiagnosticMessage
+            {
+                DiagnosticType = DiagnosticType.Warning,
+                MessageData = $"[Observation Weaver] {message}"
+            });
+            LogToFile(message);
+        }
+
+        private static void LogToFile(string message)
+        {
+            if (!_enableLogging) return;
+
+            try
+            {
+                var directory = Path.GetDirectoryName(LogFilePath);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                File.AppendAllText(
+                    LogFilePath,
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [Observation Weaver] {message}{Environment.NewLine}");
+            }
+            catch
+            {
+                // ILPP logging must never fail compilation.
+            }
+        }
+
+        private static bool LoadLoggingEnabled()
+        {
+            var configPath = Path.Combine(Environment.CurrentDirectory, "ProjectSettings", "ObservationWeaverSettings.json");
+            if (!File.Exists(configPath)) return true;
+
+            try
+            {
+                return LoadConfig(configPath)?.enableLogging ?? true;
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        private static WeaverConfig LoadConfig(string configPath)
+        {
+            var json = File.ReadAllText(configPath);
+            var config = new WeaverConfig
+            {
+                enableWeaver = ReadBool(json, "enableWeaver", true),
+                enableLogging = ReadBool(json, "enableLogging", true),
+                weaveAssemblyCSharp = ReadBool(json, "weaveAssemblyCSharp", true),
+                extraAssemblies = NormalizeAssemblyNames(ReadStringArray(json, "extraAssemblies"))
+            };
+
+            return config;
+        }
+
+        private static bool ReadBool(string json, string name, bool defaultValue)
+        {
+            var match = Regex.Match(json, $"\"{Regex.Escape(name)}\"\\s*:\\s*(true|false)", RegexOptions.IgnoreCase);
+            return match.Success ? bool.Parse(match.Groups[1].Value) : defaultValue;
+        }
+
+        private static List<string> ReadStringArray(string json, string name)
+        {
+            var match = Regex.Match(json, $"\"{Regex.Escape(name)}\"\\s*:\\s*\\[(.*?)\\]", RegexOptions.Singleline);
+            if (!match.Success)
+            {
+                return new List<string>();
+            }
+
+            return Regex.Matches(match.Groups[1].Value, "\"((?:\\\\.|[^\"])*)\"")
+                .Cast<Match>()
+                .Select(x => Regex.Unescape(x.Groups[1].Value))
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+        }
+
+        private static List<string> NormalizeAssemblyNames(IEnumerable<string> assemblyNames)
+        {
+            return assemblyNames
+                .Select(NormalizeAssemblyName)
+                .Distinct()
+                .ToList();
+        }
+
+        private static string NormalizeAssemblyName(string assemblyName)
+        {
+            return assemblyName == "Voyage.ObservationToolkit.Sample"
+                ? "VoyageForge.ObservationToolkit.Sample"
+                : assemblyName;
         }
     }
 }

@@ -701,13 +701,141 @@ ProjectSettings/ObservationWeaverSettings.json
 配置项：
 
 - `enableWeaver`：是否启用 IL 织入。
+- `enableLogging`：是否输出静态编织日志。
 - `weaveAssemblyCSharp`：是否处理 `Assembly-CSharp`。
 - `extraAssemblies`：额外处理的 asmdef 程序集名称。
+
+静态编织日志会写入：
+
+```text
+Library/ObservationToolkit/ObservationWeaver.log
+```
+
+也可以在 `VoyageForge/Observation Settings` 窗口中通过 `打开日志` 和 `清空日志` 按钮查看或清理日志。
 
 默认情况下，CodeGen 中的 `ObservationWeaver` 会在编译后扫描目标程序集，并执行两类处理：
 
 - `PropertyWeaver`：对被 `[Observation]` 命中的自动属性或可识别 backing field 的属性注入 `SetField`。
 - `ViewModelWeaver`：对继承 `ViewModel<TData>` 的类型，将属性代理到 `Data` 中同名字段，并在 setter 中注入通知。
+
+## 架构定位与待改进项
+
+ObservationToolkit 的当前定位是“MVVM 风格的属性级绑定工具包”，而不是完整的 MVVM 应用框架。项目会保留统一、强类型、免显式泛型输入的绑定入口：
+
+```csharp
+model.For(m => m.Value)
+    .To(text)
+    .OneWay();
+
+viewModel.For(vm => vm.Value)
+    .To(slider)
+    .TwoWay(s => s.onValueChanged);
+```
+
+`For(m => m.Value)` 是绑定 API，不用于区分对象属于 Model 还是 ViewModel。Model 和 ViewModel 都可以实现可观察能力，但推荐通过不同的语义、特性和编织规则表达它们的职责差异。
+
+### Model 与 ViewModel 的可观察语义
+
+当前的 `IObservable` 采用接口而不是基类，主要是为了避免 C# 单继承限制，并支持已经有基类或无法改继承链的类型。它表示“这个对象支持属性级变更通知”，不强制说明该对象一定是 Model 或 ViewModel。
+
+推荐语义：
+
+- Model 可以实现 `IObservable`，用于发布数据变化通知，避免通用 `Changed` 事件导致监听方每次都重新读取所有字段。
+- ViewModel 也可以实现 `IObservable`，用于面向 View 暴露可绑定属性、Command、组合状态、格式化状态和 UI 交互状态。
+- Model 不强制保持完全纯净；但推荐不要在 Model 中直接持有 UGUI 控件、View 生命周期、显示文案、颜色样式或按钮命令等 View 语义。
+
+### 特性拆分方向
+
+当前 `[Observation]` 同时覆盖普通 Model 属性织入和 `ViewModel<TData>` 代理织入，语义较宽。后续计划拆分为更明确的特性，例如：
+
+```csharp
+[ObservableModel]
+public partial class PlayerModel : IObservable
+{
+    public int Value { get; set; }
+}
+
+[ObservableViewModel]
+public partial class PlayerViewModel : IObservableViewModel<PlayerModel>
+{
+    public int Value { get; set; }
+}
+```
+
+其中 `[ObservableModel]` 和 `[ObservableViewModel]` 的含义不同：
+
+- `[ObservableModel]`：处理对象自身属性，将自动属性或 backing field 改写为属性级通知。
+- `[ObservableViewModel]`：处理面向 View 的代理属性，可将属性代理到 `Data` / `Model` 的同名字段或属性，并触发 ViewModel 属性通知。
+- `[Observation]` 可作为兼容旧代码的通用特性保留一段时间。
+
+### 静态编织拆分方向
+
+后续 `ObservationWeaver` 可以逐步从单一编织器拆为调度器：
+
+```text
+ObservationWeaver
+├── ModelWeaver
+├── ViewModelWeaver
+└── LegacyObservationWeaver
+```
+
+建议规则：
+
+- 标记 `[ObservableModel]` 的类型只进入 `ModelWeaver`。
+- 标记 `[ObservableViewModel]` 的类型只进入 `ViewModelWeaver`。
+- 标记旧 `[Observation]` 的类型走兼容逻辑。
+- 如果一个类型同时标记 Model 和 ViewModel 语义，应输出诊断日志或编译诊断，提示职责冲突。
+
+Model 静态编织目标：
+
+```text
+self property -> self backing field -> notify same property
+```
+
+ViewModel 静态编织目标：
+
+```text
+viewModel property -> Data/Model 同名字段或属性 -> notify viewModel property
+```
+
+二者都支持 `model.For(m => m.Value)` 这种强类型绑定入口，但底层织入逻辑不应混为一谈。
+
+### 源代码生成器方向
+
+IL Post Processor 可以减少运行时代码样板，但 IDE 可见性和调试体验有限。后续可以增加 Source Generator，用于生成强类型、可补全、免字符串输入的辅助 API。
+
+目标：
+
+- 不手写字符串属性名。
+- 不显式填写泛型参数。
+- 不为每个属性手写大量 `SetField` 样板。
+- 尽量让生成代码可被 IDE 跳转、补全和重构。
+
+可能的生成效果：
+
+```csharp
+viewModel.ObserveValue()
+    .To(text)
+    .OneWay();
+```
+
+或继续保留当前表达式入口：
+
+```csharp
+viewModel.For(vm => vm.Value)
+    .To(text)
+    .OneWay();
+```
+
+Source Generator 的重点不是替代 `For(m => m.Value)`，而是在需要时提供更强的补全体验和更少的手写样板。
+
+### 推荐演进原则
+
+- 保留 `model.For(m => m.Value)` 作为统一核心绑定入口。
+- 保留接口式可观察能力，避免基类侵入。
+- 将“Model 可观察”和“ViewModel 可观察”的语义通过特性、接口和编织规则区分。
+- Model 侧推荐专注数据变化通知；ViewModel 侧推荐承接 View 适配、Command、组合状态和显示语义。
+- 静态编织和源代码生成器都应围绕强类型、免字符串、少样板、可诊断这几个目标演进。
 
 ## 示例
 

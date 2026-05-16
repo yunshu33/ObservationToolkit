@@ -6,7 +6,12 @@
         <!-- Global Settings -->
         <ui:VisualElement class="section-container">
             <ui:Toggle name="enable-weaver-toggle" label="启用编织器" class="config-toggle" />
+            <ui:Toggle name="enable-logging-toggle" label="启用日志" class="config-toggle" />
             <ui:Toggle name="weave-assembly-csharp-toggle" label="编织 Assembly-CSharp" class="config-toggle" />
+            <ui:VisualElement class="log-button-row">
+                <ui:Button name="open-log-button" text="打开日志" class="log-button" />
+                <ui:Button name="clear-log-button" text="清空日志" class="log-button" />
+            </ui:VisualElement>
         </ui:VisualElement>
 
         <!-- Assembly Management Header -->

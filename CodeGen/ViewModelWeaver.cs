@@ -22,24 +22,25 @@ namespace VoyageForge.ObservationToolkit.Editor
             _setFieldRef = setFieldRef;
         }
 
-        public void Process()
+        public int Process()
         {
             // 检查是否继承自 ViewModel<T>
             var baseType = _type.BaseType;
             if (baseType == null || !baseType.IsGenericInstance || baseType.Name != "ViewModel`1")
-                return;
+                return 0;
 
             var genericBase = (GenericInstanceType)baseType;
             var tDataRef = genericBase.GenericArguments[0];
             var tDataDef = tDataRef.Resolve();
 
-            if (tDataDef == null) return;
+            if (tDataDef == null) return 0;
 
             // 获取 get_Data() 方法引用
             var getDataMethodRef = GetGetDataMethodRef(baseType, genericBase);
-            if (getDataMethodRef == null) return;
+            if (getDataMethodRef == null) return 0;
 
             bool isClassObservable = _type.CustomAttributes.Any(x => x.AttributeType.Name == nameof(ObservationAttribute));
+            var rewrittenCount = 0;
 
             foreach (var prop in _type.Properties)
             {
@@ -58,14 +59,18 @@ namespace VoyageForge.ObservationToolkit.Editor
                 if (prop.GetMethod != null)
                 {
                     RewriteProxyGetter(prop.GetMethod, getDataMethodRef, dataFieldRef);
+                    rewrittenCount++;
                 }
 
                 // 重写 Setter
                 if (prop.SetMethod != null)
                 {
                     RewriteProxySetter(prop.SetMethod, getDataMethodRef, dataFieldRef, _setFieldRef, prop.Name);
+                    rewrittenCount++;
                 }
             }
+
+            return rewrittenCount;
         }
 
         private MethodReference GetGetDataMethodRef(TypeReference baseType, GenericInstanceType genericBase)
