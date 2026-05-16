@@ -8,7 +8,7 @@ namespace VoyageForge.ObservationToolkit.Runtime.ViewModel
     /// </summary>
     /// <typeparam name="TData">数据模型类型。</typeparam>
     [Serializable]
-    public abstract class ViewModel<TData> : IObservable<TData> where TData : new()
+    public abstract class ViewModel<TData> : IObservableViewModel<TData> where TData : new()
     {
         /// <summary>
         /// 绑定处理器。
