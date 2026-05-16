@@ -1,10 +1,10 @@
-using System.Linq;
-using Voyage.ObservationToolkit.Runtime;
+﻿using System.Linq;
+using VoyageForge.ObservationToolkit.Runtime;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 
-namespace Voyage.ObservationToolkit.Editor
+namespace VoyageForge.ObservationToolkit.Editor
 {
     /// <summary>
     /// 标准属性通知编织器
@@ -21,8 +21,10 @@ namespace Voyage.ObservationToolkit.Editor
             _setFieldRef = setFieldRef;
         }
 
-        public void Process()
+        public int Process()
         {
+            var injectedCount = 0;
+
             // 判断类级别是否标记了 [Observation]
             bool isClassObservable = _type.CustomAttributes.Any(x => x.AttributeType.Name == nameof(ObservationAttribute));
 
@@ -42,13 +44,18 @@ namespace Voyage.ObservationToolkit.Editor
                 setMethod.Body.SimplifyMacros();
 
                 // 执行 IL 替换
-                InjectNotification(setMethod, backingField, prop.Name);
+                if (InjectNotification(setMethod, backingField, prop.Name))
+                {
+                    injectedCount++;
+                }
 
                 setMethod.Body.Optimize();
             }
+
+            return injectedCount;
         }
 
-        private void InjectNotification(MethodDefinition setMethod, FieldReference backingField, string propName)
+        private bool InjectNotification(MethodDefinition setMethod, FieldReference backingField, string propName)
         {
             var il = setMethod.Body.GetILProcessor();
             var instructions = setMethod.Body.Instructions.ToList();
@@ -60,7 +67,7 @@ namespace Voyage.ObservationToolkit.Editor
                 .Select(x => x.idx)
                 .ToList();
 
-            if (stfldIndices.Count == 0) return;
+            if (stfldIndices.Count == 0) return false;
 
             // 将每个 stfld 替换为 stloc tmpVar + SetField 调用
             foreach (var idx in stfldIndices)
@@ -86,6 +93,8 @@ namespace Voyage.ObservationToolkit.Editor
                 il.InsertAfter(storeTmp.Next.Next.Next.Next, il.Create(OpCodes.Call, genericSetField));
                 il.InsertAfter(storeTmp.Next.Next.Next.Next.Next, il.Create(OpCodes.Pop)); // 丢弃 SetField 返回的 bool
             }
+
+            return true;
         }
     }
 }

@@ -1,4 +1,4 @@
-namespace Voyage.ObservationToolkit.Runtime.Converter
+﻿namespace VoyageForge.ObservationToolkit.Runtime.Converter
 {
     /// <summary>
     /// string 与 int / float / double 的内置转换器。

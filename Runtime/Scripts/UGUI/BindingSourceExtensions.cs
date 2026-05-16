@@ -1,9 +1,9 @@
-using Voyage.ObservationToolkit.Runtime.Converter;
-using Voyage.ObservationToolkit.Runtime;
-using Voyage.ObservationToolkit.Runtime.Command;
+﻿using VoyageForge.ObservationToolkit.Runtime.Converter;
+using VoyageForge.ObservationToolkit.Runtime;
+using VoyageForge.ObservationToolkit.Runtime.Command;
 using UnityEngine.UI;
 
-namespace Voyage.ObservationToolkit.Runtime.UGUI
+namespace VoyageForge.ObservationToolkit.Runtime.UGUI
 {
     /// <summary>
     /// BindingSource 到 UGUI 组件的链式绑定扩展。
@@ -227,6 +227,18 @@ namespace Voyage.ObservationToolkit.Runtime.UGUI
         public static ButtonCommandBinder<S> To<S>(this BindingSource<S, ICommand> binder, Button target)
         {
             return new ButtonCommandBinder<S>(target, binder.Binding);
+        }
+
+        /// <summary>
+        /// 绑定到 Button 的 ICommand，并为命令提供固定参数。
+        /// 参数会在 Button 点击时传给 ICommand.CanExecute 和 ICommand.Execute。
+        /// </summary>
+        public static ButtonCommandBinder<S> To<S>(
+            this BindingSource<S, ICommand> binder,
+            Button target,
+            object parameter)
+        {
+            return new ButtonCommandBinder<S>(target, binder.Binding, parameter);
         }
     }
 }

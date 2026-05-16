@@ -1,9 +1,9 @@
-using System;
-using Voyage.ObservationToolkit.Runtime;
-using Voyage.ObservationToolkit.Runtime.Converter;
+﻿using System;
+using VoyageForge.ObservationToolkit.Runtime;
+using VoyageForge.ObservationToolkit.Runtime.Converter;
 using UnityEngine.UI;
 
-namespace Voyage.ObservationToolkit.Runtime.UGUI
+namespace VoyageForge.ObservationToolkit.Runtime.UGUI
 {
     /// <summary>
     /// Slider 绑定器，Slider 的 UI 值类型固定为 float。

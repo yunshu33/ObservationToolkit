@@ -1,6 +1,7 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
+using VoyageForge.ObservationToolkit.Runtime.Command;
 
-namespace Voyage.ObservationToolkit.Runtime
+namespace VoyageForge.ObservationToolkit.Runtime
 {
     /// <summary>
     /// 可观察对象接口。
@@ -17,10 +18,15 @@ namespace Voyage.ObservationToolkit.Runtime
 
         /// <summary>
         /// 触发属性变化通知。
+        /// 该入口会先分发普通属性绑定，再刷新通过 CommandManager 观察该属性的命令可执行状态。
         /// </summary>
+        /// <typeparam name="V">发生变化的属性值类型。</typeparam>
+        /// <param name="value">属性变化后的新值。</param>
+        /// <param name="propertyName">发生变化的属性名，默认由调用方成员名自动填充。</param>
         public void OnPropertyChanged<V>(V value, [CallerMemberName] string propertyName = null)
         {
             BindingHandler?.OnPropertyChanged(value, propertyName);
+            CommandManager.RaiseCanExecuteChanged(this, propertyName);
         }
     }
 

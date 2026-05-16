@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 
-namespace Voyage.ObservationToolkit.Runtime.Converter
+namespace VoyageForge.ObservationToolkit.Runtime.Converter
 {
     /// <summary>
     /// 统一类型转换工具。

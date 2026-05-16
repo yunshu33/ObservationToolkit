@@ -1,0 +1,22 @@
+{
+    "name": "VoyageForge.ObservationToolkit.Tests.EditMode",
+    "rootNamespace": "",
+    "references": [
+        "GUID:40311e219f18080498d40f81bef463e0",
+        "GUID:dfe1dc10a171e60479e3679136a9a0fc"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "noEngineReferences": false
+}

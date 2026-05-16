@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using UnityEngine.EventSystems;
 
-namespace Voyage.ObservationToolkit.Runtime.UGUI
+namespace VoyageForge.ObservationToolkit.Runtime.UGUI
 {
     /// <summary>
     /// UGUI 绑定事件代理基类。

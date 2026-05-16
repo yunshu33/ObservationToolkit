@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 
-namespace Voyage.ObservationToolkit.Runtime.Command
+namespace VoyageForge.ObservationToolkit.Runtime.Command
 {
     /// <summary>
     /// 命令接口，用于把 UI 事件抽象为可执行业务行为。

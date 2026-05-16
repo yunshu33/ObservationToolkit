@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Voyage.ObservationToolkit.Runtime;
-using Voyage.ObservationToolkit.Runtime.Converter;
+using VoyageForge.ObservationToolkit.Runtime;
+using VoyageForge.ObservationToolkit.Runtime.Converter;
 using UnityEngine.EventSystems;
 
-namespace Voyage.ObservationToolkit.Runtime.UGUI
+namespace VoyageForge.ObservationToolkit.Runtime.UGUI
 {
     /// <summary>
     /// UGUI 绑定器基类，负责保存目标组件、去重和生命周期释放。

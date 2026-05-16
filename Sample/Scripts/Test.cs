@@ -1,12 +1,12 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
-using Voyage.ObservationToolkit.Runtime;
-using Voyage.ObservationToolkit.Runtime.Command;
+using VoyageForge.ObservationToolkit.Runtime;
+using VoyageForge.ObservationToolkit.Runtime.Command;
 
-using Voyage.ObservationToolkit.Runtime.ViewModel;
+using VoyageForge.ObservationToolkit.Runtime.ViewModel;
 
-namespace Voyage.ObservationToolkit.Sample
+namespace VoyageForge.ObservationToolkit.Sample
 {
     public class Test : MonoBehaviour
     {

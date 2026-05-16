@@ -1,0 +1,29 @@
+{
+  "name": "com.voyageforge.observation-toolkit",
+  "version": "0.1.0",
+  "displayName": "VoyageForge Observation Toolkit",
+  "description": "A lightweight MVVM and data binding toolkit for Unity, including observable models, UGUI binding, command binding, lifecycle management, and IL weaving support.",
+  "unity": "2022.3",
+  "author": {
+    "name": "VoyageForge"
+  },
+  "keywords": [
+    "mvvm",
+    "binding",
+    "observable",
+    "ugui",
+    "command",
+    "il-weaver"
+  ],
+  "dependencies": {
+    "com.unity.ugui": "1.0.0",
+    "com.unity.textmeshpro": "3.0.6"
+  },
+  "samples": [
+    {
+      "displayName": "Observation Toolkit Samples",
+      "description": "Example scenes and scripts for runtime binding, UGUI binding, command binding, and static IL weaving.",
+      "path": "Sample"
+    }
+  ]
+}

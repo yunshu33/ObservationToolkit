@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 
-namespace Voyage.ObservationToolkit.Runtime
+namespace VoyageForge.ObservationToolkit.Runtime
 {
     /// <summary>
     /// 可释放绑定接口。

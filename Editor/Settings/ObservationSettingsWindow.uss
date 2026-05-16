@@ -40,6 +40,26 @@
     color: #37474F; /* Blue Grey 800 */
 }
 
+.log-button-row {
+    flex-direction: row;
+    margin-top: 6px;
+}
+
+.log-button {
+    width: 76px;
+    height: 24px;
+    margin-right: 6px;
+    background-color: #607D8B;
+    color: white;
+    -unity-font-style: bold;
+    border-radius: 4px;
+    border-width: 0;
+}
+
+.log-button:hover {
+    background-color: #455A64;
+}
+
 /* Headers */
 .header-row {
     flex-direction: row;

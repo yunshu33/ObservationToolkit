@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using UnityEngine;
 
-namespace Voyage.ObservationToolkit.Runtime
+namespace VoyageForge.ObservationToolkit.Runtime
 {
     /// <summary>
     /// 绑定生命周期管理组件。

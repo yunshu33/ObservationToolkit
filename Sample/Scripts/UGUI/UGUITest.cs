@@ -1,9 +1,9 @@
-using Voyage.ObservationToolkit.Runtime;
-using Voyage.ObservationToolkit.Runtime.UGUI;
+﻿using VoyageForge.ObservationToolkit.Runtime;
+using VoyageForge.ObservationToolkit.Runtime.UGUI;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Voyage.ObservationToolkit.Sample.UGUI
+namespace VoyageForge.ObservationToolkit.Sample.UGUI
 {
     public class UGUITest : MonoBehaviour
     {

@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using Voyage.ObservationToolkit.Runtime;
-using Voyage.ObservationToolkit.Runtime.Converter;
+using VoyageForge.ObservationToolkit.Runtime;
+using VoyageForge.ObservationToolkit.Runtime.Converter;
 using UnityEngine.UI;
 
-namespace Voyage.ObservationToolkit.Runtime.UGUI
+namespace VoyageForge.ObservationToolkit.Runtime.UGUI
 {
     /// <summary>
     /// InputField 绑定器，支持字符串显示和 onValueChanged 双向回写。

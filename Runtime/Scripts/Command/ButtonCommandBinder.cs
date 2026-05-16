@@ -1,8 +1,8 @@
-using System;
-using Voyage.ObservationToolkit.Runtime.Command;
+﻿using System;
+using VoyageForge.ObservationToolkit.Runtime.Command;
 using UnityEngine.UI;
 
-namespace Voyage.ObservationToolkit.Runtime.UGUI
+namespace VoyageForge.ObservationToolkit.Runtime.UGUI
 {
     /// <summary>
     /// Button 的 ICommand 绑定器。

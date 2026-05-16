@@ -1,7 +1,7 @@
-using System;
-using Voyage.ObservationToolkit.Runtime.Converter;
+﻿using System;
+using VoyageForge.ObservationToolkit.Runtime.Converter;
 
-namespace Voyage.ObservationToolkit.Runtime
+namespace VoyageForge.ObservationToolkit.Runtime
 {
     /// <summary>
     /// 泛型绑定器基类，负责把源属性值转换为目标类型，并调用目标回调。

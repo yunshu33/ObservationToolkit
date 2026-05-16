@@ -1,9 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System.Linq;
 
-namespace Voyage.ObservationToolkit.Editor
+namespace VoyageForge.ObservationToolkit.Editor
 {
     /// <summary>
     /// Mono.Cecil 扩展方法
