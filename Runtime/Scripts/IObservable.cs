@@ -43,4 +43,13 @@ namespace VoyageForge.ObservationToolkit.Runtime
         [IgnoreObservation]
         public TData Data { get; set; }
     }
+
+    /// <summary>
+    /// ViewModel 专用的可观察接口。
+    /// 它仍然复用统一的属性级通知能力，但用名称明确表达该对象面向 View 暴露绑定属性。
+    /// </summary>
+    /// <typeparam name="TData">ViewModel 包装或代理的数据模型类型。</typeparam>
+    public interface IObservableViewModel<TData> : IObservable<TData>
+    {
+    }
 }
