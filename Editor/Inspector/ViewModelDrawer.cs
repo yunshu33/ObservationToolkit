@@ -11,12 +11,29 @@ namespace VoyageForge.ObservationToolkit.Editor.Inspector
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            var root = new VisualElement();
+            var root = new VisualElement
+            {
+                style =
+                {
+                    // Style setup for cleaner look
+                    marginBottom = 2,
+                    marginTop = 2,
+                    backgroundColor = new StyleColor(new Color(43/255f, 47/255f, 51/255f))
+                }
+            };
 
-            // Style setup for cleaner look
-            root.style.marginBottom = 2;
-            root.style.marginTop = 2;
-
+            root.style.borderTopColor = root.style.borderBottomColor =
+                root.style.borderLeftColor = root.style.borderRightColor =
+                    new StyleColor(new Color(63/255f, 70/255f, 77/255f));
+            root.style.borderTopWidth = root.style.borderBottomWidth =
+                root.style.borderLeftWidth = root.style.borderRightWidth = 1;
+            root.style.borderTopLeftRadius = root.style.borderTopRightRadius =
+                root.style.borderBottomLeftRadius = root.style.borderBottomRightRadius = 6;
+            root.style.paddingTop = root.style.paddingBottom =
+                root.style.paddingLeft = root.style.paddingRight = 12;
+            root.style.marginBottom = 12;
+            
+           
             // Main Foldout
             var foldout = new Foldout
             {
@@ -88,18 +105,22 @@ namespace VoyageForge.ObservationToolkit.Editor.Inspector
             }
 
             // Container for content with some indentation and background
-            var contentContainer = new VisualElement();
-            contentContainer.style.paddingLeft = 12; // Standard indent
-            contentContainer.style.paddingRight = 2;
-            contentContainer.style.paddingTop = 2;
-            contentContainer.style.paddingBottom = 4;
-            
-            // Optional: Add a subtle background to distinguish the ViewModel block
-            contentContainer.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.03f));
-            contentContainer.style.borderTopLeftRadius = 4;
-            contentContainer.style.borderTopRightRadius = 4;
-            contentContainer.style.borderBottomLeftRadius = 4;
-            contentContainer.style.borderBottomRightRadius = 4;
+            var contentContainer = new VisualElement
+            {
+                style =
+                {
+                    paddingLeft = 12, // Standard indent
+                    paddingRight = 2,
+                    paddingTop = 2,
+                    paddingBottom = 4,
+                    // Optional: Add a subtle background to distinguish the ViewModel block
+                    backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.03f)),
+                    borderTopLeftRadius = 4,
+                    borderTopRightRadius = 4,
+                    borderBottomLeftRadius = 4,
+                    borderBottomRightRadius = 4
+                }
+            };
 
             foldout.Add(contentContainer); // Add container to foldout content
 
